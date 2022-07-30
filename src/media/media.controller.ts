@@ -42,12 +42,17 @@ export class MediaController {
     );
   }
 
-  @Get('/:mediaId')
-  async downloadMedia(@Param('mediaId') mediaId: string, @Res() res: Response) {
+  @Get('/:folder/:mediaId')
+  async downloadMedia(
+    @Param('folder') folder: string,
+    @Param('mediaId') mediaId: string,
+    @Res() res: Response,
+  ) {
+    console.log(mediaId);
     let storageFile: StorageFile;
     try {
       storageFile = await this.storageService.getWithMetaData(
-        'media/' + mediaId,
+        `media/${folder}/${mediaId}`,
       );
     } catch (e) {
       if (e.message.toString().includes('No such object')) {
@@ -56,8 +61,14 @@ export class MediaController {
         throw new ServiceUnavailableException('internal error');
       }
     }
-    res.setHeader('Content-Type', storageFile.contentType);
-    res.setHeader('Cache-Control', 'max-age=60d');
-    res.end(storageFile.buffer);
+
+    // Return the actual image file
+    // res.setHeader('Content-Type', storageFile.contentType);
+    // res.setHeader('Cache-Control', 'max-age=60d');
+    // res.end(storageFile.buffer);
+
+    // Return the public image URL
+    const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${folder}/${mediaId}`;
+    res.send(url);
   }
 }
