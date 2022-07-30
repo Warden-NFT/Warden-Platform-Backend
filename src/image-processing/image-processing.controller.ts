@@ -29,18 +29,27 @@ export class ImageProcessingController {
     @Res() res,
     @Body() body,
   ) {
-    const { folder, mediaId } = body;
+    const { folder, mediaId, width, height } = body;
     const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${folder}/${mediaId}`;
-    const layers = files.map((file) => {
-      return {
-        input: file.buffer,
-        mimetype: file.mimetype,
-      };
-    });
+    const layers = await Promise.all(
+      files.map(async (file, index) => {
+        return {
+          input:
+            index === 0
+              ? file.buffer
+              : await sharp(file.buffer)
+                  .resize({ width: parseInt(width), height: parseInt(height) })
+                  .toBuffer(),
+          mimetype: file.mimetype,
+          tile: index !== 0,
+          gravity: 'northwest',
+        };
+      }),
+    );
     try {
-      sharp(layers[0].input)
+      sharp(layers[0].input, { animated: true, pages: -1 })
+        .resize({ width: 500, withoutEnlargement: true })
         .composite(layers)
-        .png()
         .toBuffer()
         .then(async (data) => {
           // Sending the image back
