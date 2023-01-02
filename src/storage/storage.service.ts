@@ -34,7 +34,7 @@ export class StorageService {
         contentType: contentType,
       },
     });
-    stream.on("finish" , async () => {
+    stream.on("finish", async () => {
       return await file.setMetadata({
         metadata: object,
       });
