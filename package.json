@@ -79,7 +79,10 @@
     "testEnvironment": "node"
   },
   "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx}": [
+    "src/**/*.{js,ts}": [
+      "yarn lint"
+    ],
+    "src/**/*.{module,controller,controller.spec,service,service.spec}.{js,ts}": [
       "yarn lint"
     ]
   },
