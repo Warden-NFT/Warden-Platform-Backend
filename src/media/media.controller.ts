@@ -29,31 +29,17 @@ export class MediaController {
       },
     }),
   )
-  async uploadMedia(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() mediaUploadPayload: MediaUploadPayload,
-  ) {
+  async uploadMedia(@UploadedFile() file: Express.Multer.File, @Body() mediaUploadPayload: MediaUploadPayload) {
     const { mediaId, folder } = mediaUploadPayload;
-    await this.storageService.save(
-      `media/${folder}/` + mediaId,
-      file.mimetype,
-      file.buffer,
-      [{ mediaId: mediaId }],
-    );
+    await this.storageService.save(`media/${folder}/` + mediaId, file.mimetype, file.buffer, [{ mediaId: mediaId }]);
   }
 
   @Get('/:folder/:mediaId')
-  async downloadMedia(
-    @Param('folder') folder: string,
-    @Param('mediaId') mediaId: string,
-    @Res() res: Response,
-  ) {
+  async downloadMedia(@Param('folder') folder: string, @Param('mediaId') mediaId: string, @Res() res: Response) {
     console.log(mediaId);
     let storageFile: StorageFile;
     try {
-      storageFile = await this.storageService.getWithMetaData(
-        `media/${folder}/${mediaId}`,
-      );
+      storageFile = await this.storageService.getWithMetaData(`media/${folder}/${mediaId}`);
     } catch (e) {
       if (e.message.toString().includes('No such object')) {
         throw new NotFoundException('image not found');
