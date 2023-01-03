@@ -5,9 +5,27 @@ import { StorageModule } from './storage/storage.module';
 import { MediaController } from './media/media.controller';
 import { MediaModule } from './media/media.module';
 import { ImageProcessingModule } from './image-processing/image-processing.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [StorageModule, MediaModule, ImageProcessingModule],
+  imports: [
+    ConfigModule.forRoot({ envFilePath: ['.env'] }),
+    StorageModule,
+    MediaModule,
+    ImageProcessingModule,
+    AuthModule,
+    UserModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+    }),
+  ],
   controllers: [AppController, MediaController],
   providers: [AppService],
 })
