@@ -24,11 +24,7 @@ export class ImageProcessingController {
 
   @Post('merge')
   @UseInterceptors(FilesInterceptor('files'))
-  async mergeImage(
-    @UploadedFiles() files: Array<Express.Multer.File>,
-    @Res() res,
-    @Body() body,
-  ) {
+  async mergeImage(@UploadedFiles() files: Array<Express.Multer.File>, @Res() res, @Body() body) {
     const { folder, mediaId, width, height } = body;
     const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${folder}/${mediaId}`;
     const layers = await Promise.all(
@@ -57,9 +53,7 @@ export class ImageProcessingController {
 
           // Uploading to Cloud Storage
           this.storageService
-            .save(`media/${folder}/` + mediaId, layers[0].mimetype, data, [
-              { mediaId: mediaId },
-            ])
+            .save(`media/${folder}/` + mediaId, layers[0].mimetype, data, [{ mediaId: mediaId }])
             .then(() => res.send(url));
         });
     } catch (error) {

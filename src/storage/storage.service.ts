@@ -20,12 +20,7 @@ export class StorageService {
     this.bucket = StorageConfig.mediaBucket;
   }
 
-  async save(
-    path: string,
-    contentType: string,
-    media: Buffer,
-    metadata: { [key: string]: string }[],
-  ) {
+  async save(path: string, contentType: string, media: Buffer, metadata: { [key: string]: string }[]) {
     const object = metadata.reduce((obj, item) => Object.assign(obj, item), {});
     object.contentType = contentType;
     const file = this.storage.bucket(this.bucket).file(path);
@@ -43,28 +38,17 @@ export class StorageService {
   }
 
   async delete(path: string) {
-    await this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .delete({ ignoreNotFound: true });
+    await this.storage.bucket(this.bucket).file(path).delete({ ignoreNotFound: true });
   }
 
   async getWithMetaData(path: string): Promise<StorageFile> {
-    const [metadata] = await this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .getMetadata();
-    const fileResponse: DownloadResponse = await this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .download();
+    const [metadata] = await this.storage.bucket(this.bucket).file(path).getMetadata();
+    const fileResponse: DownloadResponse = await this.storage.bucket(this.bucket).file(path).download();
     const [buffer] = fileResponse;
 
     const storageFile = new StorageFile();
     storageFile.buffer = buffer;
-    storageFile.metadata = new Map<string, string>(
-      Object.entries(metadata || {}),
-    );
+    storageFile.metadata = new Map<string, string>(Object.entries(metadata || {}));
     storageFile.contentType = storageFile.metadata.get('contentType');
     return storageFile;
   }
