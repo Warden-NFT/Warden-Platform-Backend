@@ -11,11 +11,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { StorageFile } from 'src/storage/storage-file';
 import { StorageService } from 'src/storage/storage.service';
 import { MediaUploadPayload } from './Interfaces/MediaUpload';
 
+@ApiTags('Media')
 @Controller('media')
 export class MediaController {
   constructor(private storageService: StorageService) {}

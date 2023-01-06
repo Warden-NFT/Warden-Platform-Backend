@@ -1,9 +1,16 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiConflictResponse, ApiCreatedResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { CreateCustomerUserDTO, CreateEventOrganizerUserDTO, LoginDTO, SuccessfulRegisterDTO } from './dto/user.dto';
 import { UserService } from './user.service';
 
+@ApiTags('Users')
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService, private readonly configService: ConfigService) {}
