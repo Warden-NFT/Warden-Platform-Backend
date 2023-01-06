@@ -10,9 +10,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 import * as sharp from 'sharp';
 import { StorageService } from 'src/storage/storage.service';
-
+@ApiTags('Image Processing')
 @Controller('image-processing')
 export class ImageProcessingController {
   constructor(private storageService: StorageService) {}

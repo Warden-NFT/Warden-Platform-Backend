@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { forwardRef, Global, Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { AuthModule } from 'src/auth/auth.module';
@@ -16,7 +16,7 @@ const eventOrganizerProviderFactory = {
   useFactory: (userModel) => userModel.discriminator('EventOrganizer', EventOrganizerSchema),
   inject: [getModelToken('User')],
 };
-
+@Global()
 @Module({
   imports: [
     ConfigModule,

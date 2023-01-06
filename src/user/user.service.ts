@@ -1,6 +1,6 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model, Types } from 'mongoose';
 import { AuthService } from 'src/auth/auth.service';
 import {
   CreateCustomerUserDTO,
@@ -37,6 +37,23 @@ export class UserService {
         break;
     }
     return await (model as Model<User>).find(filter).select(select);
+  }
+
+  async findById(id: Types.ObjectId | string, select?: string): Promise<User> {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('Invalid Id');
+    }
+    const user = await this.userModel.findById(id).select(select);
+    if (user == null) {
+      throw new HttpException(
+        {
+          reason: 'USER_NOT_FOUND',
+          message: 'User not found',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return user;
   }
 
   async findByPhoneNumber(phoneNumber: string): Promise<User> {
@@ -88,7 +105,7 @@ export class UserService {
       // Create a new user
       const newUser = new this.eventOrganizerModel(user);
       newUser.password = await this.authService.hashPassword(user.password);
-      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, 'Customer')];
+      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, 'EventOrganizer')];
       await createdUser.save();
       return {
         status: HttpStatus.CREATED,
