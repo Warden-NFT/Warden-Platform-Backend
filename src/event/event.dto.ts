@@ -65,7 +65,7 @@ export class EventDTO {
 }
 
 @Expose()
-export class UpdateEventDTO {
+export class UpdateEventDTO extends EventDTO {
   @ApiProperty()
   @IsString()
   eventId: string;
@@ -73,7 +73,4 @@ export class UpdateEventDTO {
   @ApiProperty()
   @IsString()
   eventOrganizerId: string;
-
-  @ApiProperty({ type: EventDTO })
-  event: EventDTO;
 }
