@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  Query,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { EventOrganizerGuard } from 'src/auth/jwt.guard';
 import { AuthUser } from 'src/user/user.decorator';
@@ -10,9 +23,17 @@ export class EventController {
   constructor(private userService: EventService) {}
 
   @UseGuards(EventOrganizerGuard)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: {
+        files: 1,
+        fileSize: 10000000, // approximately 10 MB
+      },
+    }),
+  )
   @Post('/createEvent')
-  async createEvent(@Body() dto: EventDTO) {
-    return this.userService.createEvent(dto);
+  async createEvent(@Body() dto: EventDTO, @UploadedFile() image: Express.Multer.File) {
+    return this.userService.createEvent(dto, image);
   }
 
   @UseGuards(EventOrganizerGuard)

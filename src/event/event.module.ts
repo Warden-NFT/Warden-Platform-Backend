@@ -4,9 +4,14 @@ import { EventController } from './event.controller';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventSchema } from './event.schema';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
-  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Event', schema: EventSchema, collection: 'events' }])],
+  imports: [
+    ConfigModule,
+    MongooseModule.forFeature([{ name: 'Event', schema: EventSchema, collection: 'events' }]),
+    StorageModule,
+  ],
   providers: [EventService],
   controllers: [EventController],
   exports: [EventService],
