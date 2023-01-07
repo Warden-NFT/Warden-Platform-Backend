@@ -33,7 +33,7 @@ export class MediaController {
   )
   async uploadMedia(@UploadedFile() file: Express.Multer.File, @Body() mediaUploadPayload: MediaUploadPayload) {
     const { mediaId, folder } = mediaUploadPayload;
-    await this.storageService.save(`media/${folder}/` + mediaId, file.mimetype, file.buffer, [{ mediaId: mediaId }]);
+    return this.storageService.save(`media/${folder}/` + mediaId, file.mimetype, file.buffer, [{ mediaId: mediaId }]);
   }
 
   @Get('/:folder/:mediaId')
