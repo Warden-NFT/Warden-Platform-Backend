@@ -10,7 +10,7 @@ export class EventDTO {
   eventStatus: EventStatusType;
 
   @ApiProperty({ type: [String] })
-  keywords: string[];
+  eventKeywords: string[];
 
   @ApiProperty()
   @IsString()
@@ -62,4 +62,18 @@ export class EventDTO {
   @ApiProperty()
   @IsDate()
   endDate: Date;
+}
+
+@Expose()
+export class UpdateEventDTO {
+  @ApiProperty()
+  @IsString()
+  eventId: string;
+
+  @ApiProperty()
+  @IsString()
+  eventOrganizerId: string;
+
+  @ApiProperty({ type: EventDTO })
+  event: EventDTO;
 }
