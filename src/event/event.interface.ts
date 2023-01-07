@@ -2,7 +2,7 @@ import { EventStatusType } from './event.schema';
 
 export interface Event {
   eventStatus: EventStatusType;
-  keywords: string[];
+  eventKeywords: [string];
   location: string;
   maximumAttendeeCapacity: number;
   organizerId: string;
