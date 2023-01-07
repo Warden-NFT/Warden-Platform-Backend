@@ -1,6 +1,7 @@
 import { EventStatusType } from './event.schema';
 
 export interface Event {
+  _id?: string;
   eventStatus: EventStatusType;
   eventKeywords: [string];
   location: string;

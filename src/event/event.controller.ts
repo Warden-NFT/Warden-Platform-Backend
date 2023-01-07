@@ -49,10 +49,17 @@ export class EventController {
   }
 
   @UseGuards(EventOrganizerGuard)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: {
+        files: 1,
+        fileSize: 10000000, // approximately 10 MB
+      },
+    }),
+  )
   @Put('/updateEvent')
-  async updateEvent(@Body() dto: UpdateEventDTO) {
-    const { event, eventId, eventOrganizerId } = dto;
-    return this.userService.updateEvent(event, eventId, eventOrganizerId);
+  async updateEvent(@Body() dto: UpdateEventDTO, @UploadedFile() image: Express.Multer.File, @Req() req: any) {
+    return this.userService.updateEvent(dto, req.user.uid, image);
   }
 
   @UseGuards(EventOrganizerGuard)
