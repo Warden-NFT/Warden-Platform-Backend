@@ -14,7 +14,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { EventOrganizerGuard } from 'src/auth/jwt.guard';
-import { AuthUser } from 'src/user/user.decorator';
+import { TEN_MEGABYTES } from 'src/utils/constants';
 import { EventDTO, UpdateEventDTO } from './event.dto';
 import { EventService } from './event.service';
 @ApiTags('Event')
@@ -27,7 +27,7 @@ export class EventController {
     FileInterceptor('image', {
       limits: {
         files: 1,
-        fileSize: 10000000, // approximately 10 MB
+        fileSize: TEN_MEGABYTES,
       },
     }),
   )
@@ -53,7 +53,7 @@ export class EventController {
     FileInterceptor('image', {
       limits: {
         files: 1,
-        fileSize: 10000000, // approximately 10 MB
+        fileSize: TEN_MEGABYTES,
       },
     }),
   )
