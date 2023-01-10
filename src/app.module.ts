@@ -10,6 +10,7 @@ import { UserModule } from './user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventModule } from './event/event.module';
+import { TicketModule } from './ticket/ticket.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { EventModule } from './event/event.module';
       }),
     }),
     EventModule,
+    TicketModule,
   ],
   controllers: [AppController, MediaController],
   providers: [AppService],

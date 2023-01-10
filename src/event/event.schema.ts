@@ -14,8 +14,13 @@ export const EventSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  maximumAttendeeCapacity: {
-    type: String,
+  ticketSupply: {
+    type: {
+      general: Number,
+      vip: Number,
+      reservedSeat: Number,
+      total: Number,
+    },
     required: false,
   },
   organizerId: {
@@ -68,7 +73,7 @@ export const EventSchema = new mongoose.Schema({
     required: true,
   },
   // Smart Contract owner
-  owner: {
+  ownerAddress: {
     type: String,
     required: true,
   },

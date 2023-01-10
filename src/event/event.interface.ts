@@ -1,28 +1,34 @@
-export type EventStatusType = 'NotStarted' | 'AdmissionStarted' | 'EventStarted' | 'EventEnded';
+import { Types } from 'mongoose';
+import { TicketType } from 'src/ticket/ticket.dto';
 
-export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
+export type EventStatusType = 'NotStarted' | 'AdmissionStarted' | 'EventStarted' | 'EventEnded';
 
 export type TicketsMetadata = { data: [{ attributes: string; description: string; image: string; name: string }] };
 
 export interface Event {
-  _id?: string;
+  _id?: Types.ObjectId | string;
   eventStatus: EventStatusType;
   eventKeywords: [string];
   location: string;
-  maximumAttendeeCapacity: number;
+  ticketSupply: {
+    general: number;
+    vip: number;
+    reservedSeat: number;
+    total: number;
+  };
   organizerId: string;
   subEventId: string;
   superEventId: string;
   description: string;
   identifier: string;
-  image: File | string;
+  image: string;
   name: string;
   url: string;
   doorTime: Date;
   startDate: Date;
   endDate: Date;
   ticketType: TicketType;
-  owner: string;
+  ownerAddress: string;
   smartContractAddress: string;
   ticketsMetadata: TicketsMetadata;
 }
