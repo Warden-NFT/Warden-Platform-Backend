@@ -1,8 +1,6 @@
 import * as mongoose from 'mongoose';
 import * as uniqueValidator from 'mongoose-unique-validator';
 
-export type EventStatusType = 'NotStarted' | 'AdmissionStarted' | 'EventStarted' | 'EventEnded';
-
 export const EventSchema = new mongoose.Schema({
   eventStatus: {
     type: String,
@@ -63,6 +61,25 @@ export const EventSchema = new mongoose.Schema({
   },
   endDate: {
     type: Date,
+    required: false,
+  },
+  ticketType: {
+    type: String,
+    required: true,
+  },
+  // Smart Contract owner
+  owner: {
+    type: String,
+    required: true,
+  },
+  // The address that the smart contract is deployed to
+  smartContractAddress: {
+    type: String,
+    required: true,
+  },
+  // Array of all ticket metadata
+  ticketsMetadata: {
+    type: Object,
     required: false,
   },
 });
