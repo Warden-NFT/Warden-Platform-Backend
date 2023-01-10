@@ -1,7 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsDate, IsNumber, IsString } from 'class-validator';
-import { EventStatusType } from './event.schema';
+import { EventStatusType, TicketsMetadata, TicketType } from './event.interface';
+
+@Expose()
+export class TicketsMetadataDTO {
+  data: [
+    {
+      attributes: string;
+      description: string;
+      image: string;
+      name: string;
+    },
+  ];
+}
 
 @Expose()
 export class EventDTO {
@@ -62,6 +74,21 @@ export class EventDTO {
   @ApiProperty()
   @IsDate()
   endDate: Date;
+
+  @ApiProperty()
+  @IsString()
+  ticketType: TicketType;
+
+  @ApiProperty()
+  @IsString()
+  owner: string;
+
+  @ApiProperty()
+  @IsString()
+  smartContractAddress: string;
+
+  @ApiProperty({ type: TicketsMetadataDTO })
+  ticketsMetadata: TicketsMetadata;
 }
 
 @Expose()

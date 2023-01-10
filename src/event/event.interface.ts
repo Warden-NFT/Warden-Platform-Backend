@@ -1,4 +1,8 @@
-import { EventStatusType } from './event.schema';
+export type EventStatusType = 'NotStarted' | 'AdmissionStarted' | 'EventStarted' | 'EventEnded';
+
+export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
+
+export type TicketsMetadata = { data: [{ attributes: string; description: string; image: string; name: string }] };
 
 export interface Event {
   _id?: string;
@@ -17,4 +21,8 @@ export interface Event {
   doorTime: Date;
   startDate: Date;
   endDate: Date;
+  ticketType: TicketType;
+  owner: string;
+  smartContractAddress: string;
+  ticketsMetadata: TicketsMetadata;
 }
