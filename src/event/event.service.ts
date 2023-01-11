@@ -111,4 +111,6 @@ export class EventService {
       );
     }
   }
+
+  // TODO: add ticket to event
 }

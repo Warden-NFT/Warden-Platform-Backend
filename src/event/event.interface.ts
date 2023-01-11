@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { TicketType } from 'src/ticket/ticket.dto';
+import { TicketType } from 'src/ticket/ticket.interface';
 
 export type EventStatusType = 'NotStarted' | 'AdmissionStarted' | 'EventStarted' | 'EventEnded';
 

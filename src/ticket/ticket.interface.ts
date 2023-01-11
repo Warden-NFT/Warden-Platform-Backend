@@ -1,67 +1,28 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNumber, IsString } from 'class-validator';
 import { Types } from 'mongoose';
-import { TicketsMetadataDTO } from 'src/event/event.dto';
+import { TicketsMetadata } from 'src/event/event.interface';
 
 export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
 
-export class TicketDTO {
-  @ApiProperty()
-  @IsDate()
+export interface Ticket {
+  _id?: Types.ObjectId;
   dateIssued: Date;
-
-  @ApiProperty()
-  @IsString()
   issuedBy: Types.ObjectId;
-
-  @ApiProperty()
-  @IsString()
   priceCurrency: string;
-
-  @ApiProperty()
-  @IsNumber()
   ticketNumber: number;
-
-  @ApiProperty()
-  @IsNumber()
   totalPrice: number;
-
-  @ApiProperty()
-  @IsString()
   ownerId: Types.ObjectId;
-
-  @ApiProperty()
-  @IsString()
   description: string;
-
-  @ApiProperty()
-  @IsString()
   name: string;
-
-  @ApiProperty()
-  @IsString()
   subjectOf: Types.ObjectId; // Event ID
-
-  @ApiProperty()
-  @IsString()
   smartContractAddress: string;
-
-  @ApiProperty({ type: TicketsMetadataDTO })
-  ticketMetadata: TicketsMetadataDTO;
-
-  @ApiProperty()
-  @IsString()
+  ticketMetadata: TicketsMetadata;
   ownerAddress: string;
 }
 
-export class VIPTicketDTO extends TicketDTO {
-  @ApiProperty()
-  @IsString()
+export interface VIPTicked extends Ticket {
   benefits: string; // placeholder
 }
 
-export class ReservedSeatDTO extends TicketDTO {
-  @ApiProperty()
-  @IsString()
+export interface ReservedSeatDTO extends Ticket {
   ticketSeat: string;
 }
