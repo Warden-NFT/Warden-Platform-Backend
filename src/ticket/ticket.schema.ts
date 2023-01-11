@@ -1,5 +1,4 @@
 import mongoose, { Types } from 'mongoose';
-import { TicketsMetadataDTO } from 'src/event/event.dto';
 
 export const TicketSchema = new mongoose.Schema({
   dateIssued: Date,
@@ -13,6 +12,6 @@ export const TicketSchema = new mongoose.Schema({
   name: String,
   subjectOf: Types.ObjectId, // Event ID
   smartContractAddress: String,
-  ticketMetadata: TicketsMetadataDTO,
+  ticketMetadata: Object,
   ownerAddress: String,
 });
