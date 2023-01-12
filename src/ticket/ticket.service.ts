@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { throwBadRequestError } from 'src/utils/httpError';
-import { DeleteResponseDTO, InsertManyResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, updateTicketDTO } from './ticket.dto';
+import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
+import { TicketDTO, UpdateTicketDTO } from './ticket.dto';
 import { Ticket } from './ticket.interface';
 
 @Injectable()
@@ -53,17 +53,31 @@ export class TicketService {
   }
 
   // Update ticket details
-  async updateTicket(ticket: updateTicketDTO) {
+  async updateTicket(ticket: UpdateTicketDTO, ownerId: string): Promise<TicketDTO> {
     try {
-      const updatedTicket = await this.ticketModel.findByIdAndUpdate(ticket._id);
-      return updatedTicket;
+      const ticketToBeUpdated = await this.ticketModel.findById(ticket._id);
+      if (!ticketToBeUpdated) {
+        throw new NotFoundException(`Ticket #${ticket._id} not found`);
+      }
+      if (ticketToBeUpdated.ownerId.toString() !== ownerId) {
+        throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
+      }
+      const updatedTicket = { ...ticketToBeUpdated, ...ticket };
+      return await this.ticketModel.findByIdAndUpdate(ticket._id, updatedTicket, { new: true });
     } catch (error) {
       throwBadRequestError(error);
     }
   }
 
   // Delete an event with the specified ID
-  async deleteTicket(ticketId: Types.ObjectId): Promise<DeleteResponseDTO> {
+  async deleteTicket(ticketId: Types.ObjectId, ownerId: string): Promise<DeleteResponseDTO> {
+    const ticketToBeDeleted = await this.ticketModel.findById(ticketId);
+    if (!ticketToBeDeleted) {
+      throw new NotFoundException(`Ticket #${ticketId} not found`);
+    }
+    if (ticketToBeDeleted.ownerId.toString() !== ownerId) {
+      throw new UnauthorizedException(`You do not have the permission to delete this ticket`);
+    }
     try {
       return await this.ticketModel.findByIdAndDelete(ticketId);
     } catch (error) {

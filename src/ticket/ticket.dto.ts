@@ -64,7 +64,7 @@ export class ReservedSeatDTO extends TicketDTO {
   ticketSeat: string;
 }
 
-export class updateTicketDTO extends TicketDTO {
+export class UpdateTicketDTO extends TicketDTO {
   @ApiProperty({ type: Types.ObjectId })
   _id: Types.ObjectId;
 }
