@@ -11,6 +11,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventModule } from './event/event.module';
 import { TicketModule } from './ticket/ticket.module';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TicketModule } from './ticket/ticket.module';
     }),
     EventModule,
     TicketModule,
+    OtpModule,
   ],
   controllers: [AppController, MediaController],
   providers: [AppService],
