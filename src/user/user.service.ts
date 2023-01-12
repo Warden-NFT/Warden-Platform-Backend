@@ -1,17 +1,18 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model, Types } from 'mongoose';
 import { AuthService } from 'src/auth/auth.service';
 import {
   CreateCustomerUserDTO,
   CreateEventOrganizerUserDTO,
-  SuccessfulLoginDTO,
-  SuccessfulRegisterDTO,
+  SuccessfulUserModificationDTO,
+  SuccessfulVerificationDTO,
 } from './dto/user.dto';
-import { Account, CustomerUser, EventOrganizerUser, User } from './user.interface';
+import { Account, CustomerUser, EventOrganizerUser, User, Verification } from './user.interface';
 import * as bcrypt from 'bcrypt';
 import { DuplicateElementException } from './user.exception';
 import { Role } from 'common/roles';
+import { throwBadRequestError } from 'src/utils/httpError';
 
 @Injectable()
 export class UserService {
@@ -61,7 +62,7 @@ export class UserService {
     return user;
   }
 
-  async registerCustomerUser(user: CreateCustomerUserDTO): Promise<SuccessfulRegisterDTO> {
+  async registerCustomerUser(user: CreateCustomerUserDTO): Promise<SuccessfulUserModificationDTO> {
     // Check duplicate phone number
     const existingUser = await this.userModel.findOne({
       $or: [{ phoneNumber: user.phoneNumber }, { email: user.email }],
@@ -94,7 +95,7 @@ export class UserService {
     }
   }
 
-  async registerEventOrganizerUser(user: CreateEventOrganizerUserDTO): Promise<SuccessfulRegisterDTO> {
+  async registerEventOrganizerUser(user: CreateEventOrganizerUserDTO): Promise<SuccessfulUserModificationDTO> {
     // Check duplicate phone number
     const existingUser = await this.userModel.findOne({
       $or: [{ phoneNumber: user.phoneNumber }, { email: user.email }],
@@ -127,7 +128,7 @@ export class UserService {
     }
   }
 
-  async login(phoneNumber: string, password: string): Promise<SuccessfulLoginDTO> {
+  async login(phoneNumber: string, password: string): Promise<SuccessfulUserModificationDTO> {
     const user: User | CustomerUser | EventOrganizerUser = await this.findByPhoneNumber(phoneNumber);
     const isPasswordMatch = user && (await bcrypt.compare(password, user.password));
     if (!user || !isPasswordMatch) {
@@ -146,5 +147,20 @@ export class UserService {
       message: 'Login successful',
       jwt,
     };
+  }
+
+  async setUserPhoneVerificationStatus(userId: string, status: Verification): Promise<SuccessfulVerificationDTO> {
+    try {
+      const user = await this.findById(userId);
+      if (!user) throw new NotFoundException(`User id #${userId} not found`);
+      user.verificationStatus = status;
+      await user.save();
+      return {
+        status: HttpStatus.CREATED,
+        message: 'The user has been created successfully',
+      };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
   }
 }
