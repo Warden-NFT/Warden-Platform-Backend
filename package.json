@@ -32,6 +32,7 @@
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/swagger": "^6.1.4",
     "@types/sharp": "^0.30.4",
+    "api": "^5.0.6",
     "bcrypt": "^5.1.0",
     "canvas": "^2.9.3",
     "class-transformer": "^0.5.1",

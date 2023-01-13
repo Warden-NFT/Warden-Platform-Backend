@@ -1,14 +1,12 @@
 import { HttpStatus, HttpException, Injectable } from '@nestjs/common';
 import { RequestOtpResponseDTO } from './otp.dto';
 
+const sdk = require('api')('@thaibulksms/v1.0#fmhq4nl4qv7899');
 @Injectable()
 export class OtpService {
   async getOtp(phoneNumber: string): Promise<RequestOtpResponseDTO> {
     try {
-      const sdk = require('api')('@thaibulksms/v1.0#3s3hunt2tktwn9w2l');
-
-      const res = await sdk.post(
-        '/v2/otp/request',
+      const res = await sdk.postV2OtpRequest(
         {
           key: process.env.OTP_KEY,
           secret: process.env.OTP_SECRETKEY,
@@ -18,16 +16,14 @@ export class OtpService {
       );
       return res;
     } catch (err) {
+      console.log(err);
       throw new HttpException('Failed Requesting OTP', HttpStatus.BAD_REQUEST);
     }
   }
 
   async verifyOtp(token: string, pin: string): Promise<{ status: number; message: string }> {
     try {
-      const sdk = require('api')('@thaibulksms/v1.0#3s3hunt2tktwn9w2l');
-
-      const res = await sdk.post(
-        '/v2/otp/verify',
+      const res = await sdk.postV2OtpVerify(
         {
           key: process.env.OTP_KEY,
           secret: process.env.OTP_SECRETKEY,
@@ -36,7 +32,6 @@ export class OtpService {
         },
         { Accept: 'application/json' },
       );
-      console.log('verification successful');
       return { status: res.status, message: res.message };
     } catch (err) {
       throw new HttpException('Failed Verifying OTP', HttpStatus.UNAUTHORIZED);
