@@ -48,6 +48,19 @@ jobs:
           region: ${{ env.REGION }}
           # NOTE: If required, update to the appropriate source folder
           source: ./
+          env_vars: |
+            PROJECT_ID=${{ env.PROJECT_ID }}
+            PRIVATE_KEY=${{ env.PRIVATE_KEY }}
+            CLIENT_EMAIL=${{ env.CLIENT_EMAIL }}
+            STORAGE_MEDIA_BUCKET=${{ env.STORAGE_MEDIA_BUCKET }}
+            JWT_SECRET_KEY=${{ env.JWT_SECRET_KEY }}
+            HASH_SALT=${{ env.HASH_SALT }}
+            HASHIDS_SALT=${{ env.HASHIDS_SALT }}
+            GUARD_PASSWORD=${{ env.GUARD_PASSWORD }}
+            MONGODB_URI=${{ env.MONGODB_URI }}
+            POLYGON_MUMBAI=${{ env.POLYGON_MUMBAI }}
+            OTP_KEY=${{ env.OTP_KEY }}
+            OTP_SECRETKEY=${{ env.OTP_SECRETKEY }}
 
       # If required, use the Cloud Run url output in later steps
       - name: Show Output
