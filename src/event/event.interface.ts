@@ -3,7 +3,14 @@ import { TicketType } from 'src/ticket/ticket.interface';
 
 export type EventStatusType = 'NotStarted' | 'AdmissionStarted' | 'EventStarted' | 'EventEnded';
 
-export type TicketsMetadata = { data: [{ attributes: string; description: string; image: string; name: string }] };
+export type TicketsMetadata = {
+  data: {
+    attributes: { value: string; trait_type: string }[];
+    description: string;
+    image: string;
+    name: string;
+  }[];
+};
 
 export interface Event {
   _id?: Types.ObjectId | string;
