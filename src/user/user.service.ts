@@ -69,6 +69,8 @@ export class UserService {
     });
     if (existingUser) throw new DuplicateElementException('Phone number or email');
 
+    const userInfo = { ...user, accountType: Account.Customer };
+    delete userInfo.password;
     try {
       // Create a new user
       const newUser = new this.customerModel(user);
@@ -79,6 +81,7 @@ export class UserService {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
         jwt,
+        user: userInfo,
       };
     } catch (err) {
       if (err.code === 11000) {
@@ -102,6 +105,8 @@ export class UserService {
     });
     if (existingUser) throw new DuplicateElementException('Phone number or email');
 
+    const userInfo = { ...user, accountType: Account.EventOrganizer };
+    delete userInfo.password;
     try {
       // Create a new user
       const newUser = new this.eventOrganizerModel(user);
@@ -112,6 +117,7 @@ export class UserService {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
         jwt,
+        user: userInfo,
       };
     } catch (err) {
       if (err.code === 11000) {
@@ -140,12 +146,15 @@ export class UserService {
         HttpStatus.UNAUTHORIZED,
       );
     }
+    const userInfo = { ...user };
+    delete userInfo.password;
     const role: Role = user['organizationName'] ? Account.EventOrganizer : Account.Customer;
     const jwt = await this.authService.generateJWT(user._id, role);
     return {
       status: HttpStatus.CREATED,
       message: 'Login successful',
       jwt,
+      user,
     };
   }
 

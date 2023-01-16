@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsEmail, IsNumber, IsString, Length, Matches } from 'class-validator';
-import { Verification } from '../user.interface';
+import { Account, Verification } from '../user.interface';
 
 @Expose()
 export class CreateCustomerUserDTO {
@@ -58,6 +58,10 @@ export class CreateEventOrganizerUserDTO {
   @ApiProperty()
   @IsString()
   organizationName: string;
+
+  @ApiProperty()
+  @IsString()
+  verificationStatus: Verification;
 }
 
 @Expose()
@@ -73,6 +77,18 @@ export class LoginDTO {
 }
 
 @Expose()
+export class UserGeneralInfo {
+  phoneNumber: string;
+  email: string;
+  username: string;
+  verificationStatus: Verification;
+  accountType: Account;
+  firstName?: string;
+  lastName?: string;
+  organizationName?: string;
+}
+
+@Expose()
 export class SuccessfulUserModificationDTO {
   @ApiProperty()
   @IsNumber()
@@ -85,6 +101,9 @@ export class SuccessfulUserModificationDTO {
   @ApiProperty()
   @IsString()
   jwt: string;
+
+  @ApiProperty({ type: UserGeneralInfo })
+  user: UserGeneralInfo;
 }
 
 @Expose()

@@ -26,3 +26,14 @@ export interface EventOrganizerUser extends User {
   organizationName: string;
   accountType: Account.EventOrganizer;
 }
+
+export interface UserGeneralInfo {
+  phoneNumber: string;
+  email: string;
+  username: string;
+  verificationStatus: Verification;
+  accountType: Account;
+  firstName?: string;
+  lastName?: string;
+  organizationName?: string;
+}
