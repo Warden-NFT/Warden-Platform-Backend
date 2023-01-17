@@ -7,6 +7,7 @@ import {
   CreateEventOrganizerUserDTO,
   SuccessfulUserModificationDTO,
   SuccessfulVerificationDTO,
+  UserGeneralInfoDTO,
 } from './dto/user.dto';
 import { Account, CustomerUser, EventOrganizerUser, User, Verification } from './user.interface';
 import * as bcrypt from 'bcrypt';
@@ -168,6 +169,16 @@ export class UserService {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
       };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
+  async getUserInfo(userId: string): Promise<UserGeneralInfoDTO> {
+    try {
+      const user = await this.findById(userId);
+      if (!user) throw new NotFoundException(`User id #${userId} not found`);
+      return user;
     } catch (error) {
       throwBadRequestError(error);
     }

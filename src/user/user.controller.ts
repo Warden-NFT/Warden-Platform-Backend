@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   ApiConflictResponse,
@@ -16,6 +16,7 @@ import {
   SuccessfulUserModificationDTO,
   SuccessfulVerificationDTO,
   UpdateVerificationStatusDTO,
+  UserGeneralInfoDTO,
 } from './dto/user.dto';
 import { UserService } from './user.service';
 
@@ -54,5 +55,13 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async updateVerificationStatus(@Req() req, @Body() dto: UpdateVerificationStatusDTO) {
     return this.userService.setUserPhoneVerificationStatus(req.user.uid, dto.verificationStatus);
+  }
+
+  @Get()
+  @ApiOkResponse({ type: UserGeneralInfoDTO })
+  @ApiNotFoundResponse({ description: `User id not found` })
+  @UseGuards(JwtAuthGuard)
+  async getUserInfo(@Req() req) {
+    return this.userService.getUserInfo(req.user.uid);
   }
 }

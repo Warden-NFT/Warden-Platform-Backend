@@ -77,7 +77,7 @@ export class LoginDTO {
 }
 
 @Expose()
-export class UserGeneralInfo {
+export class UserGeneralInfoDTO {
   phoneNumber: string;
   email: string;
   username: string;
@@ -102,8 +102,8 @@ export class SuccessfulUserModificationDTO {
   @IsString()
   jwt: string;
 
-  @ApiProperty({ type: UserGeneralInfo })
-  user: UserGeneralInfo;
+  @ApiProperty({ type: UserGeneralInfoDTO })
+  user: UserGeneralInfoDTO;
 }
 
 @Expose()
