@@ -1,8 +1,9 @@
 import { Body, Controller, Post, Get, Param, HttpCode, ValidationPipe, UsePipes } from '@nestjs/common';
 import { OtpService } from './otp.service';
-import { ApiParam, ApiBody, ApiOkResponse, ApiBadRequestResponse } from '@nestjs/swagger';
+import { ApiParam, ApiBody, ApiOkResponse, ApiBadRequestResponse, ApiTags } from '@nestjs/swagger';
 import { RequestOtpResponseDTO, VerifyOtpDTO } from './otp.dto';
 
+@ApiTags('OTP')
 @Controller('otp')
 export class OtpController {
   constructor(private otpService: OtpService) {}

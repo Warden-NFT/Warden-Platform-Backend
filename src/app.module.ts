@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { StorageModule } from './storage/storage.module';
 import { MediaController } from './media/media.controller';
 import { MediaModule } from './media/media.module';
-import { ImageProcessingModule } from './image-processing/image-processing.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -18,7 +17,6 @@ import { OtpModule } from './otp/otp.module';
     ConfigModule.forRoot({ envFilePath: ['.env'] }),
     StorageModule,
     MediaModule,
-    ImageProcessingModule,
     AuthModule,
     UserModule,
     MongooseModule.forRootAsync({
