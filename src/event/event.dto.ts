@@ -2,7 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsDate, IsNumber, IsString } from 'class-validator';
 import { TicketType } from 'src/ticket/ticket.interface';
-import { EventStatusType, TicketsMetadata } from './event.interface';
+import { EventStatusType, TicketsMetadata } from './interfaces/event.interface';
+import { PlaceType } from './interfaces/location.interface';
 
 @Expose()
 export class TicketsMetadataDTO {
@@ -27,7 +28,18 @@ export class EventDTO {
 
   @ApiProperty()
   @IsString()
-  location: string;
+  location: PlaceType;
+
+  @ApiProperty()
+  @IsString()
+  online_url: string;
+
+  @ApiProperty()
+  ticketSupply: {
+    general: number;
+    vip: number;
+    reservedSeat: number;
+  };
 
   @ApiProperty()
   @IsNumber()
@@ -54,7 +66,7 @@ export class EventDTO {
   identifier: string;
 
   @ApiProperty({ oneOf: [{ type: 'string' }, { type: 'file' }] })
-  image: File | string;
+  image: any;
 
   @ApiProperty()
   @IsString()

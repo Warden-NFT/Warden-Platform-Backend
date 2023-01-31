@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { TicketsMetadata } from 'src/event/event.interface';
+import { TicketsMetadata } from 'src/event/interfaces/event.interface';
 
 export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
 
