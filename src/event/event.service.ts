@@ -3,13 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { StorageService } from 'src/storage/storage.service';
 import { EventDTO, UpdateEventDTO } from './event.dto';
-import { Event } from './event.interface';
+import { Event } from './interfaces/event.interface';
 
 @Injectable()
 export class EventService {
   constructor(@InjectModel('Event') private eventModel: Model<Event>, private storageService: StorageService) {}
 
   async createEvent(dto: EventDTO, image: Express.Multer.File | undefined): Promise<Event> {
+    dto.ticketSupply = JSON.parse(JSON.stringify(dto.ticketSupply));
     try {
       await new this.eventModel(dto).validate();
       const newEvent = await new this.eventModel(dto);

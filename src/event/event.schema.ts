@@ -14,12 +14,15 @@ export const EventSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  online_url: {
+    type: String,
+    required: false,
+  },
   ticketSupply: {
     type: {
       general: Number,
       vip: Number,
       reservedSeat: Number,
-      total: Number,
     },
     required: false,
   },
@@ -75,12 +78,12 @@ export const EventSchema = new mongoose.Schema({
   // Smart Contract owner
   ownerAddress: {
     type: String,
-    required: true,
+    required: false,
   },
   // The address that the smart contract is deployed to
   smartContractAddress: {
     type: String,
-    required: true,
+    required: false,
   },
   // Array of all ticket metadata
   ticketsMetadata: {
