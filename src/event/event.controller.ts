@@ -63,8 +63,8 @@ export class EventController {
   @ApiNotFoundResponse({ description: 'Event #${eventId} not found' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
-  async getEventFromOrganizer(@Query('id') eventOrganizerId: string) {
-    return this.userService.getEventFromEventOrganizer(eventOrganizerId);
+  async getEventFromOrganizer(@Req() req: any) {
+    return this.userService.getEventFromEventOrganizer(req.user.uid);
   }
 
   @Put('/updateEvent')
