@@ -30,7 +30,7 @@ import { EventService } from './event.service';
 @ApiTags('Event')
 @Controller('event')
 export class EventController {
-  constructor(private userService: EventService) {}
+  constructor(private eventService: EventService) {}
 
   @Post('/createEvent')
   @HttpCode(HttpStatus.CREATED)
@@ -45,8 +45,8 @@ export class EventController {
       },
     }),
   )
-  async createEvent(@Body() dto: EventDTO, @UploadedFile() image: Express.Multer.File) {
-    return this.userService.createEvent(dto, image);
+  async createEvent(@Body() dto: EventDTO) {
+    return this.eventService.createEvent(dto);
   }
 
   @Get('getEvent')
@@ -55,7 +55,7 @@ export class EventController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
   async getEvent(@Query('id') eventId: string) {
-    return this.userService.getEvent(eventId);
+    return this.eventService.getEvent(eventId);
   }
 
   @Get('/getEventFromOrganizer')
@@ -64,7 +64,7 @@ export class EventController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
   async getEventFromOrganizer(@Req() req: any) {
-    return this.userService.getEventFromEventOrganizer(req.user.uid);
+    return this.eventService.getEventFromEventOrganizer(req.user.uid);
   }
 
   @Put('/updateEvent')
@@ -80,7 +80,7 @@ export class EventController {
     }),
   )
   async updateEvent(@Body() dto: UpdateEventDTO, @UploadedFile() image: Express.Multer.File, @Req() req: any) {
-    return this.userService.updateEvent(dto, req.user.uid, image);
+    return this.eventService.updateEvent(dto, req.user.uid, image);
   }
 
   @Delete('/deleteEvent')
@@ -88,6 +88,20 @@ export class EventController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
   async deleteEvent(@Query('id') eventId: string, @Req() req: any) {
-    return this.userService.deleteEvent(eventId, req.user.uid);
+    return this.eventService.deleteEvent(eventId, req.user.uid);
+  }
+
+  @Post('uploadEventImage')
+  @UseGuards(EventOrganizerGuard)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: {
+        files: 1,
+        fileSize: TEN_MEGABYTES,
+      },
+    }),
+  )
+  async uploadEventImage(@Body() dto, @UploadedFile() image: Express.Multer.File, @Req() req: any) {
+    return this.eventService.uploadEventImage(req.user.uid, dto.eventId, image);
   }
 }

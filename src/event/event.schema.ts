@@ -11,7 +11,18 @@ export const EventSchema = new mongoose.Schema({
     required: false,
   },
   location: {
-    type: String,
+    type: {
+      description: String,
+      structured_formatting: {
+        main_text: String,
+        secondary_text: String,
+        main_text_matched_substrings: {
+          offset: Number,
+          length: Number,
+        },
+      },
+      place_id: String,
+    },
     required: false,
   },
   online_url: {
@@ -60,15 +71,15 @@ export const EventSchema = new mongoose.Schema({
     required: false,
   },
   doorTime: {
-    type: Date,
+    type: String,
     required: false,
   },
   startDate: {
-    type: Date,
+    type: String,
     required: false,
   },
   endDate: {
-    type: Date,
+    type: String,
     required: false,
   },
   ticketType: {
