@@ -61,21 +61,11 @@ export class EventService {
     }
   }
 
-  async updateEvent(
-    dto: UpdateEventDTO,
-    eventOrganizerId: string,
-    image: Express.Multer.File | undefined,
-  ): Promise<Event> {
+  async updateEvent(dto: UpdateEventDTO, eventOrganizerId: string): Promise<Event> {
     try {
       const event: Event = await this.eventModel.findById(dto.eventId);
       const isEventOwner = event.organizerId === eventOrganizerId;
       if (!isEventOwner) throw new UnauthorizedException('You are not the event owner');
-      if (image) {
-        await this.storageService.save(`media/${event._id}/cover`, image.mimetype, image.buffer, [
-          { mediaId: 'cover' },
-        ]);
-      }
-      dto.image = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${event._id}/cover`;
       const updatedEvent = await this.eventModel.findByIdAndUpdate(dto.eventId, dto, { new: true });
       return updatedEvent;
     } catch (error) {
