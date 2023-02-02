@@ -71,16 +71,8 @@ export class EventController {
   @ApiOkResponse({ type: EventDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
-  @UseInterceptors(
-    FileInterceptor('image', {
-      limits: {
-        files: 1,
-        fileSize: FILE_SIZES.TEN_MEGABYTES,
-      },
-    }),
-  )
-  async updateEvent(@Body() dto: UpdateEventDTO, @UploadedFile() image: Express.Multer.File, @Req() req: any) {
-    return this.eventService.updateEvent(dto, req.user.uid, image);
+  async updateEvent(@Body() dto: UpdateEventDTO, @Req() req: any) {
+    return this.eventService.updateEvent(dto, req.user.uid);
   }
 
   @Delete('/deleteEvent')
