@@ -9,20 +9,10 @@ import { Event } from './interfaces/event.interface';
 export class EventService {
   constructor(@InjectModel('Event') private eventModel: Model<Event>, private storageService: StorageService) {}
 
-  async createEvent(dto: EventDTO, image: Express.Multer.File | undefined): Promise<Event> {
-    dto.ticketSupply = JSON.parse(JSON.stringify(dto.ticketSupply));
+  async createEvent(dto: EventDTO): Promise<Event> {
     try {
       await new this.eventModel(dto).validate();
       const newEvent = await new this.eventModel(dto);
-
-      // If the user uploaded the event cover image, save it to GCS
-      if (image) {
-        await this.storageService.save(`media/${newEvent._id}/cover`, image.mimetype, image.buffer, [
-          { mediaId: 'cover' },
-        ]);
-        newEvent.image = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${newEvent._id}/cover`;
-      }
-
       return newEvent.save();
     } catch (error) {
       throw new HttpException(
@@ -113,5 +103,26 @@ export class EventService {
     }
   }
 
-  // TODO: add ticket to event
+  async uploadEventImage(eventOrganizerId: string, eventId: string, image: Express.Multer.File) {
+    try {
+      const event: Event = await this.eventModel.findById(eventId);
+      console.log({ event });
+      const isEventOwner = event.organizerId === eventOrganizerId;
+      if (!isEventOwner) throw new UnauthorizedException('You are not the event owner');
+      // If the user uploaded the event cover image, save it to GCS
+      await this.storageService.save(`media/${eventId}/cover`, image.mimetype, image.buffer, [{ mediaId: 'cover' }]);
+      const newImageUrl = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${eventId}/cover`;
+      event.image = newImageUrl;
+      const updatedEvent = await this.eventModel.findByIdAndUpdate(eventId, { image: newImageUrl }, { new: true });
+      return updatedEvent.image;
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 }

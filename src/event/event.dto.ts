@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsDate, IsNumber, IsString } from 'class-validator';
+import { IsDateString, IsNumber, IsString } from 'class-validator';
 import { TicketType } from 'src/ticket/ticket.interface';
 import { EventStatusType, TicketsMetadata } from './interfaces/event.interface';
 import { PlaceType } from './interfaces/location.interface';
@@ -77,15 +77,15 @@ export class EventDTO {
   url: string;
 
   @ApiProperty()
-  @IsDate()
+  @IsDateString()
   doorTime: Date;
 
   @ApiProperty()
-  @IsDate()
+  @IsDateString()
   startDate: Date;
 
   @ApiProperty()
-  @IsDate()
+  @IsDateString()
   endDate: Date;
 
   @ApiProperty()
@@ -102,6 +102,12 @@ export class EventDTO {
 
   @ApiProperty({ type: TicketsMetadataDTO })
   ticketsMetadata: TicketsMetadata;
+}
+
+@Expose()
+export class CreateEventDTO {
+  @ApiProperty()
+  data: string;
 }
 
 @Expose()
