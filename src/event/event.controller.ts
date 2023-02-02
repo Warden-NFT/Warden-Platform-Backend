@@ -22,7 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { EventOrganizerGuard } from 'src/auth/jwt.guard';
-import { TEN_MEGABYTES } from 'src/utils/constants';
+import { FILE_SIZES } from 'src/utils/constants';
 import { DeleteResponseDTO, HttpErrorResponse } from 'src/utils/httpResponse.dto';
 import { EventDTO, UpdateEventDTO } from './event.dto';
 import { EventService } from './event.service';
@@ -41,7 +41,7 @@ export class EventController {
     FileInterceptor('image', {
       limits: {
         files: 1,
-        fileSize: TEN_MEGABYTES,
+        fileSize: FILE_SIZES.TEN_MEGABYTES,
       },
     }),
   )
@@ -75,7 +75,7 @@ export class EventController {
     FileInterceptor('image', {
       limits: {
         files: 1,
-        fileSize: TEN_MEGABYTES,
+        fileSize: FILE_SIZES.TEN_MEGABYTES,
       },
     }),
   )
@@ -97,7 +97,7 @@ export class EventController {
     FileInterceptor('image', {
       limits: {
         files: 1,
-        fileSize: TEN_MEGABYTES,
+        fileSize: FILE_SIZES.TEN_MEGABYTES,
       },
     }),
   )
