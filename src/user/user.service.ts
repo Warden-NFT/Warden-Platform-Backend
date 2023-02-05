@@ -12,7 +12,7 @@ import {
 import { Account, CustomerUser, EventOrganizerUser, User, Verification } from './user.interface';
 import * as bcrypt from 'bcrypt';
 import { DuplicateElementException } from './user.exception';
-import { Role } from 'common/roles';
+import { ROLE, Role } from 'common/roles';
 import { throwBadRequestError } from 'src/utils/httpError';
 
 @Injectable()
@@ -76,7 +76,7 @@ export class UserService {
       // Create a new user
       const newUser = new this.customerModel(user);
       newUser.password = await this.authService.hashPassword(user.password);
-      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, 'Customer')];
+      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, ROLE.CUSTOMER)];
       await createdUser.save();
       return {
         status: HttpStatus.CREATED,
@@ -112,7 +112,10 @@ export class UserService {
       // Create a new user
       const newUser = new this.eventOrganizerModel(user);
       newUser.password = await this.authService.hashPassword(user.password);
-      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, 'EventOrganizer')];
+      const [createdUser, jwt] = [
+        await newUser.save(),
+        this.authService.generateJWT(newUser._id, ROLE.EVENT_ORGANIZER),
+      ];
       await createdUser.save();
       return {
         status: HttpStatus.CREATED,
@@ -149,7 +152,7 @@ export class UserService {
     }
     const userInfo = { ...user };
     delete userInfo.password;
-    const role: Role = user['organizationName'] ? Account.EventOrganizer : Account.Customer;
+    const role: Role = user['organizationName'] ? ROLE.EVENT_ORGANIZER : ROLE.CUSTOMER;
     const jwt = await this.authService.generateJWT(user._id, role);
     return {
       status: HttpStatus.CREATED,
