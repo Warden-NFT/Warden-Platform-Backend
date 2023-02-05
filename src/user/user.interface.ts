@@ -1,9 +1,5 @@
+import { Role, ROLE } from 'common/roles';
 import * as mongoose from 'mongoose';
-
-export enum Account {
-  Customer = 'Customer',
-  EventOrganizer = 'EventOrganizer',
-}
 
 export type Verification = 'NotVerified' | 'Verified';
 
@@ -13,18 +9,18 @@ export interface User extends mongoose.Document {
   username: string;
   password: string;
   verificationStatus: Verification;
-  accountType: Account;
+  accountType: Role;
 }
 
 export interface CustomerUser extends User {
   firstName: string;
   lastName: string;
-  accountType: Account.Customer;
+  accountType: ROLE.CUSTOMER;
 }
 
 export interface EventOrganizerUser extends User {
   organizationName: string;
-  accountType: Account.EventOrganizer;
+  accountType: ROLE.EVENT_ORGANIZER;
 }
 
 export interface UserGeneralInfo {
@@ -32,7 +28,7 @@ export interface UserGeneralInfo {
   email: string;
   username: string;
   verificationStatus: Verification;
-  accountType: Account;
+  accountType: Role;
   firstName?: string;
   lastName?: string;
   organizationName?: string;
