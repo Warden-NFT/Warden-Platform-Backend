@@ -1,1 +1,7 @@
-export type Role = 'EventOrganizer' | 'Customer';
+export type Role = 'EVENT_ORGANIZER' | 'CUSTOMER' | 'ADMIN';
+
+export enum ROLE {
+  EVENT_ORGANIZER = 'EVENT_ORGANIZER',
+  CUSTOMER = 'CUSTOMER',
+  ADMIN = 'ADMIN',
+}

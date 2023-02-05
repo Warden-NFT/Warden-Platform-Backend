@@ -11,6 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventModule } from './event/event.module';
 import { TicketModule } from './ticket/ticket.module';
 import { OtpModule } from './otp/otp.module';
+import { SmartContractModule } from './smart-contract/smart-contract.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { OtpModule } from './otp/otp.module';
     EventModule,
     TicketModule,
     OtpModule,
+    SmartContractModule,
   ],
   controllers: [AppController, MediaController],
   providers: [AppService],
