@@ -11,6 +11,21 @@ export const EventSchema = new mongoose.Schema({
     required: false,
   },
   location: {
+    type: {
+      description: String,
+      structured_formatting: {
+        main_text: String,
+        secondary_text: String,
+        main_text_matched_substrings: {
+          offset: Number,
+          length: Number,
+        },
+      },
+      place_id: String,
+    },
+    required: false,
+  },
+  online_url: {
     type: String,
     required: false,
   },
@@ -19,7 +34,6 @@ export const EventSchema = new mongoose.Schema({
       general: Number,
       vip: Number,
       reservedSeat: Number,
-      total: Number,
     },
     required: false,
   },
@@ -57,15 +71,15 @@ export const EventSchema = new mongoose.Schema({
     required: false,
   },
   doorTime: {
-    type: Date,
+    type: String,
     required: false,
   },
   startDate: {
-    type: Date,
+    type: String,
     required: false,
   },
   endDate: {
-    type: Date,
+    type: String,
     required: false,
   },
   ticketType: {
@@ -75,12 +89,12 @@ export const EventSchema = new mongoose.Schema({
   // Smart Contract owner
   ownerAddress: {
     type: String,
-    required: true,
+    required: false,
   },
   // The address that the smart contract is deployed to
   smartContractAddress: {
     type: String,
-    required: true,
+    required: false,
   },
   // Array of all ticket metadata
   ticketsMetadata: {

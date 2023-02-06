@@ -9,10 +9,10 @@ import {
   SuccessfulVerificationDTO,
   UserGeneralInfoDTO,
 } from './dto/user.dto';
-import { Account, CustomerUser, EventOrganizerUser, User, Verification } from './user.interface';
+import { CustomerUser, EventOrganizerUser, User, Verification } from './user.interface';
 import * as bcrypt from 'bcrypt';
 import { DuplicateElementException } from './user.exception';
-import { Role } from 'common/roles';
+import { ROLE } from 'common/roles';
 import { throwBadRequestError } from 'src/utils/httpError';
 
 @Injectable()
@@ -25,13 +25,13 @@ export class UserService {
     private authService: AuthService,
   ) {}
 
-  async find(filter, select?: string, accountType?: Account): Promise<User[]> {
+  async find(filter, select?: string, accountType?: ROLE): Promise<User[]> {
     let model: Model<User> | Model<CustomerUser> | Model<EventOrganizerUser>;
     switch (accountType) {
-      case Account.Customer:
+      case ROLE.CUSTOMER:
         model = this.customerModel;
         break;
-      case Account.EventOrganizer:
+      case ROLE.EVENT_ORGANIZER:
         model = this.eventOrganizerModel;
         break;
       default:
@@ -70,13 +70,13 @@ export class UserService {
     });
     if (existingUser) throw new DuplicateElementException('Phone number or email');
 
-    const userInfo = { ...user, accountType: Account.Customer };
+    const userInfo = { ...user, accountType: ROLE.CUSTOMER };
     delete userInfo.password;
     try {
       // Create a new user
       const newUser = new this.customerModel(user);
       newUser.password = await this.authService.hashPassword(user.password);
-      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, 'Customer')];
+      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, ROLE.CUSTOMER)];
       await createdUser.save();
       return {
         status: HttpStatus.CREATED,
@@ -106,13 +106,16 @@ export class UserService {
     });
     if (existingUser) throw new DuplicateElementException('Phone number or email');
 
-    const userInfo = { ...user, accountType: Account.EventOrganizer };
+    const userInfo = { ...user, accountType: ROLE.EVENT_ORGANIZER };
     delete userInfo.password;
     try {
       // Create a new user
       const newUser = new this.eventOrganizerModel(user);
       newUser.password = await this.authService.hashPassword(user.password);
-      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, 'EventOrganizer')];
+      const [createdUser, jwt] = [
+        await newUser.save(),
+        this.authService.generateJWT(newUser._id, ROLE.EVENT_ORGANIZER),
+      ];
       await createdUser.save();
       return {
         status: HttpStatus.CREATED,
@@ -149,8 +152,7 @@ export class UserService {
     }
     const userInfo = { ...user };
     delete userInfo.password;
-    const role: Role = user['organizationName'] ? Account.EventOrganizer : Account.Customer;
-    const jwt = await this.authService.generateJWT(user._id, role);
+    const jwt = await this.authService.generateJWT(user._id, user.accountType);
     return {
       status: HttpStatus.CREATED,
       message: 'Login successful',

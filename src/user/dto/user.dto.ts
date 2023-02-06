@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsEmail, IsNumber, IsString, Length, Matches } from 'class-validator';
-import { Account, Verification } from '../user.interface';
+import { Role } from 'common/roles';
+import { Verification } from '../user.interface';
 
 @Expose()
 export class CreateCustomerUserDTO {
@@ -82,7 +83,7 @@ export class UserGeneralInfoDTO {
   email: string;
   username: string;
   verificationStatus: Verification;
-  accountType: Account;
+  accountType: Role;
   firstName?: string;
   lastName?: string;
   organizationName?: string;

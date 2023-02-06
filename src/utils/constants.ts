@@ -1,1 +1,3 @@
-export const TEN_MEGABYTES = 10485760;
+export const FILE_SIZES = {
+  TEN_MEGABYTES: 10485760,
+};

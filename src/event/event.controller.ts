@@ -22,7 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { EventOrganizerGuard } from 'src/auth/jwt.guard';
-import { TEN_MEGABYTES } from 'src/utils/constants';
+import { FILE_SIZES } from 'src/utils/constants';
 import { DeleteResponseDTO, HttpErrorResponse } from 'src/utils/httpResponse.dto';
 import { EventDTO, UpdateEventDTO } from './event.dto';
 import { EventService } from './event.service';
@@ -30,7 +30,7 @@ import { EventService } from './event.service';
 @ApiTags('Event')
 @Controller('event')
 export class EventController {
-  constructor(private userService: EventService) {}
+  constructor(private eventService: EventService) {}
 
   @Post('/createEvent')
   @HttpCode(HttpStatus.CREATED)
@@ -41,12 +41,12 @@ export class EventController {
     FileInterceptor('image', {
       limits: {
         files: 1,
-        fileSize: TEN_MEGABYTES,
+        fileSize: FILE_SIZES.TEN_MEGABYTES,
       },
     }),
   )
-  async createEvent(@Body() dto: EventDTO, @UploadedFile() image: Express.Multer.File) {
-    return this.userService.createEvent(dto, image);
+  async createEvent(@Body() dto: EventDTO) {
+    return this.eventService.createEvent(dto);
   }
 
   @Get('getEvent')
@@ -55,7 +55,7 @@ export class EventController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
   async getEvent(@Query('id') eventId: string) {
-    return this.userService.getEvent(eventId);
+    return this.eventService.getEvent(eventId);
   }
 
   @Get('/getEventFromOrganizer')
@@ -63,24 +63,16 @@ export class EventController {
   @ApiNotFoundResponse({ description: 'Event #${eventId} not found' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
-  async getEventFromOrganizer(@Query('id') eventOrganizerId: string) {
-    return this.userService.getEventFromEventOrganizer(eventOrganizerId);
+  async getEventFromOrganizer(@Req() req: any) {
+    return this.eventService.getEventFromEventOrganizer(req.user.uid);
   }
 
   @Put('/updateEvent')
   @ApiOkResponse({ type: EventDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
-  @UseInterceptors(
-    FileInterceptor('image', {
-      limits: {
-        files: 1,
-        fileSize: TEN_MEGABYTES,
-      },
-    }),
-  )
-  async updateEvent(@Body() dto: UpdateEventDTO, @UploadedFile() image: Express.Multer.File, @Req() req: any) {
-    return this.userService.updateEvent(dto, req.user.uid, image);
+  async updateEvent(@Body() dto: UpdateEventDTO, @Req() req: any) {
+    return this.eventService.updateEvent(dto, req.user.uid);
   }
 
   @Delete('/deleteEvent')
@@ -88,6 +80,20 @@ export class EventController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
   async deleteEvent(@Query('id') eventId: string, @Req() req: any) {
-    return this.userService.deleteEvent(eventId, req.user.uid);
+    return this.eventService.deleteEvent(eventId, req.user.uid);
+  }
+
+  @Post('uploadEventImage')
+  @UseGuards(EventOrganizerGuard)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: {
+        files: 1,
+        fileSize: FILE_SIZES.TEN_MEGABYTES,
+      },
+    }),
+  )
+  async uploadEventImage(@Body() dto, @UploadedFile() image: Express.Multer.File, @Req() req: any) {
+    return this.eventService.uploadEventImage(req.user.uid, dto.eventId, image);
   }
 }
