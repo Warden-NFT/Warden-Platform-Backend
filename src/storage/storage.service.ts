@@ -21,20 +21,43 @@ export class StorageService {
   }
 
   async save(path: string, contentType: string, media: Buffer, metadata: { [key: string]: string }[]) {
-    const object = metadata.reduce((obj, item) => Object.assign(obj, item), {});
-    object.contentType = contentType;
-    const file = this.storage.bucket(this.bucket).file(path);
-    const stream = file.createWriteStream({
-      metadata: {
-        contentType: contentType,
-      },
+    return new Promise((resolve, reject) => {
+      try {
+        const object = metadata.reduce((obj, item) => Object.assign(obj, item), {});
+        console.log(object);
+        object.contentType = contentType;
+        const file = this.storage.bucket(this.bucket).file(path);
+        const stream = file.createWriteStream({
+          metadata: {
+            contentType: contentType,
+          },
+        });
+        stream.on('finish', async () => {
+          return await file.setMetadata({
+            metadata: object,
+          });
+        });
+        stream.end(media);
+        resolve({ success: true });
+      } catch (error) {
+        reject({ success: false, reason: error });
+      }
     });
-    stream.on('finish', async () => {
-      return await file.setMetadata({
-        metadata: object,
+  }
+
+  async saveFiles(
+    files: { path: string; contentType: string; media: Buffer; metadata: { [key: string]: string }[] }[],
+  ) {
+    return new Promise((resolve, reject) => {
+      Array.from(files).forEach(async (file) => {
+        try {
+          await this.save(file.path, file.contentType, file.media, file.metadata);
+          resolve({ success: true });
+        } catch (error) {
+          reject({ success: false, reason: error });
+        }
       });
     });
-    stream.end(media);
   }
 
   async delete(path: string) {

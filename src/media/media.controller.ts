@@ -8,14 +8,15 @@ import {
   Res,
   ServiceUnavailableException,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { StorageFile } from 'src/storage/storage-file';
 import { StorageService } from 'src/storage/storage.service';
-import { MediaUploadPayload } from './Interfaces/MediaUpload';
+import { MediaUploadPayload, MultipleMediaUploadPayload } from './Interfaces/MediaUpload';
 
 @ApiTags('Media')
 @Controller('media')
@@ -34,6 +35,29 @@ export class MediaController {
   async uploadMedia(@UploadedFile() file: Express.Multer.File, @Body() mediaUploadPayload: MediaUploadPayload) {
     const { mediaId, folder } = mediaUploadPayload;
     return this.storageService.save(`media/${folder}/` + mediaId, file.mimetype, file.buffer, [{ mediaId: mediaId }]);
+  }
+
+  @Post('multiple')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadMultipleMedia(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() mediaUploadPayload: MultipleMediaUploadPayload,
+  ) {
+    const { folder } = mediaUploadPayload;
+    const filesData: { path: string; contentType: string; media: Buffer; metadata: { [key: string]: string }[] }[] =
+      Array.from(files).map((file, index) => {
+        return {
+          path: `media/${folder}/` + index,
+          contentType: file.mimetype,
+          media: file.buffer,
+          metadata: [
+            {
+              mediaId: `${file}`,
+            },
+          ],
+        };
+      });
+    return this.storageService.saveFiles(filesData);
   }
 
   @Get('/:folder/:mediaId')
