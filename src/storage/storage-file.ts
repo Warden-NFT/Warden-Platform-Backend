@@ -3,3 +3,8 @@ export class StorageFile {
   metadata: Map<string, string>;
   contentType: string;
 }
+
+export class StorageFileWithMetadata {
+  file: StorageFile;
+  ticketMetadata: string;
+}
