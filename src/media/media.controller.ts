@@ -20,7 +20,7 @@ import {
   GetMediaDTO,
   MediaUploadPayload,
   MultipleMediaUploadPayload,
-  SaveTicketSetDTO,
+  StoredFileMetadata,
 } from './Interfaces/MediaUpload';
 
 @ApiTags('Media')
@@ -48,32 +48,17 @@ export class MediaController {
     @UploadedFiles() files: Express.Multer.File[],
     @Body() mediaUploadPayload: MultipleMediaUploadPayload,
   ) {
-    const { folder } = mediaUploadPayload;
-    const filesData: { path: string; contentType: string; media: Buffer; metadata: { [key: string]: string }[] }[] =
-      Array.from(files).map((file) => {
-        return {
-          path: `media/${folder}/${file.originalname}`,
-          contentType: file.mimetype,
-          media: file.buffer,
-          metadata: [{}],
-        };
-      });
-    return this.storageService.saveFiles(filesData);
-  }
-
-  @Post('saveTicketSet')
-  @UseInterceptors(FilesInterceptor('files'))
-  async saveTicketSet(@UploadedFiles() files: Express.Multer.File[], @Body() saveTicketSetDTO: SaveTicketSetDTO) {
-    const { folder, ticketMetadata } = saveTicketSetDTO;
-    const filesData: { path: string; contentType: string; media: Buffer; metadata: { [key: string]: string }[] }[] =
-      files.map((file) => {
-        return {
-          path: `media/${folder}/${file.originalname}`,
-          contentType: file.mimetype,
-          media: file.buffer,
-          metadata: JSON.parse(ticketMetadata),
-        };
-      });
+    const { folder, metadata } = mediaUploadPayload;
+    const fileMetadata = JSON.parse(metadata) as StoredFileMetadata[];
+    const filesData = files.map((file, i) => {
+      const _metadata = fileMetadata[i] ?? {};
+      return {
+        path: `media/${folder}/${file.originalname}`,
+        contentType: file.mimetype,
+        media: file.buffer,
+        metadata: [_metadata],
+      };
+    });
     return this.storageService.saveFiles(filesData);
   }
 

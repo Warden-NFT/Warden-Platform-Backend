@@ -2,6 +2,7 @@ import { StorageFile, StorageFileWithMetadata } from './storage-file';
 import { DownloadResponse, Storage } from '@google-cloud/storage';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import StorageConfig from './storage-config';
+import { FileData, StoredFileMetadata } from 'src/media/Interfaces/MediaUpload';
 
 @Injectable()
 export class StorageService {
@@ -20,7 +21,7 @@ export class StorageService {
     this.bucket = StorageConfig.mediaBucket;
   }
 
-  async save(path: string, contentType: string, media: Buffer, metadata: { [key: string]: string }[]) {
+  async save(path: string, contentType: string, media: Buffer, metadata: StoredFileMetadata[]) {
     if (!media) {
       throw new HttpException(
         {
@@ -52,9 +53,7 @@ export class StorageService {
     });
   }
 
-  async saveFiles(
-    files: { path: string; contentType: string; media: Buffer; metadata: { [key: string]: string }[] }[],
-  ) {
+  async saveFiles(files: FileData[]) {
     if (files.length <= 0) {
       throw new HttpException(
         {
