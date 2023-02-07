@@ -1,6 +1,6 @@
-import { StorageFile } from './storage-file';
+import { StorageFile, StorageFileWithMetadata } from './storage-file';
 import { DownloadResponse, Storage } from '@google-cloud/storage';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import StorageConfig from './storage-config';
 
 @Injectable()
@@ -21,11 +21,18 @@ export class StorageService {
   }
 
   async save(path: string, contentType: string, media: Buffer, metadata: { [key: string]: string }[]) {
+    if (!media) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'No file was uploaded',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return new Promise((resolve, reject) => {
       try {
         const object = metadata.reduce((obj, item) => Object.assign(obj, item), {});
-        console.log(object);
-        object.contentType = contentType;
         const file = this.storage.bucket(this.bucket).file(path);
         const stream = file.createWriteStream({
           metadata: {
@@ -48,6 +55,15 @@ export class StorageService {
   async saveFiles(
     files: { path: string; contentType: string; media: Buffer; metadata: { [key: string]: string }[] }[],
   ) {
+    if (files.length <= 0) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'No file was uploaded',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return new Promise((resolve, reject) => {
       Array.from(files).forEach(async (file) => {
         try {
@@ -61,10 +77,20 @@ export class StorageService {
   }
 
   async delete(path: string) {
-    await this.storage.bucket(this.bucket).file(path).delete({ ignoreNotFound: true });
+    try {
+      await this.storage.bucket(this.bucket).file(path).delete({ ignoreNotFound: true });
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
-  async getWithMetaData(path: string): Promise<StorageFile> {
+  async getWithMetaData(path: string): Promise<StorageFileWithMetadata> {
     const [metadata] = await this.storage.bucket(this.bucket).file(path).getMetadata();
     const fileResponse: DownloadResponse = await this.storage.bucket(this.bucket).file(path).download();
     const [buffer] = fileResponse;
@@ -73,6 +99,6 @@ export class StorageService {
     storageFile.buffer = buffer;
     storageFile.metadata = new Map<string, string>(Object.entries(metadata || {}));
     storageFile.contentType = storageFile.metadata.get('contentType');
-    return storageFile;
+    return { file: storageFile, ticketMetadata: metadata.metadata };
   }
 }
