@@ -98,6 +98,11 @@ export class StorageService {
     storageFile.buffer = buffer;
     storageFile.metadata = new Map<string, string>(Object.entries(metadata || {}));
     storageFile.contentType = storageFile.metadata.get('contentType');
-    return { file: storageFile, ticketMetadata: metadata.metadata };
+    return { file: storageFile, metadata: metadata.metadata };
+  }
+
+  async getMetadata(path: string): Promise<StoredFileMetadata> {
+    const [metadata] = await this.storage.bucket(this.bucket).file(path).getMetadata();
+    return metadata;
   }
 }
