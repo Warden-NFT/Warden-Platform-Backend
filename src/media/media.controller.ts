@@ -38,8 +38,10 @@ export class MediaController {
     }),
   )
   async uploadMedia(@UploadedFile() file: Express.Multer.File, @Body() mediaUploadPayload: MediaUploadPayload) {
-    const { mediaId, folder } = mediaUploadPayload;
-    return this.storageService.save(`media/${folder}/` + mediaId, file.mimetype, file.buffer, [{ mediaId: mediaId }]);
+    const { metadata, folder } = mediaUploadPayload;
+    const fileMetadata = JSON.parse(metadata) as StoredFileMetadata[];
+
+    return this.storageService.save(`media/${folder}/${file.originalname}`, file.mimetype, file.buffer, fileMetadata);
   }
 
   @Post('multiple')

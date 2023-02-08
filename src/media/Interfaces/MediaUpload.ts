@@ -1,5 +1,5 @@
 export interface MediaUploadPayload {
-  mediaId: string;
+  metadata: string;
   folder: string;
 }
 
