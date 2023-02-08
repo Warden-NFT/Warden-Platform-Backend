@@ -8,13 +8,16 @@ import {
   ServiceUnavailableException,
   UploadedFile,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { StorageFileWithMetadata } from 'src/storage/storage-file';
 import { StorageService } from 'src/storage/storage.service';
+import { MediaWithMetadataDTO, SuccessfulMediaOperationDTO } from './dto/media.dto';
 import {
   DeleteMediaDTO,
   GetMediaDTO,
@@ -29,6 +32,9 @@ export class MediaController {
   constructor(private storageService: StorageService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: SuccessfulMediaOperationDTO })
+  @ApiBadRequestResponse({ description: 'Invalid file or file size is too large' })
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
@@ -45,6 +51,9 @@ export class MediaController {
   }
 
   @Post('multiple')
+  @ApiCreatedResponse({ type: SuccessfulMediaOperationDTO })
+  @ApiBadRequestResponse({ description: 'Invalid file or file size is too large' })
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('files'))
   async uploadMultipleMedia(
     @UploadedFiles() files: Express.Multer.File[],
@@ -65,6 +74,8 @@ export class MediaController {
   }
 
   @Post('getMedia')
+  @ApiOkResponse({ type: String })
+  @UseGuards(JwtAuthGuard)
   async downloadMedia(@Body() dto: GetMediaDTO, @Res() res: Response) {
     // Return the public image URL
     const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/${dto.path}`;
@@ -72,12 +83,14 @@ export class MediaController {
   }
 
   @Post('getMetadata')
+  @ApiOkResponse({ type: MediaWithMetadataDTO })
+  @ApiBadRequestResponse({ description: 'Invalid path' })
   async getMetadata(@Body() dto: GetMediaDTO, @Res() res: Response) {
     let storageFile: StorageFileWithMetadata;
     try {
       storageFile = await this.storageService.getWithMetaData(dto.path);
       const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/${dto.path}`;
-      res.send({ url, ticketMetadata: storageFile.ticketMetadata });
+      res.send({ url, ticketMetadata: storageFile.ticketMetadata, timeCreated: storageFile.timeCreated });
     } catch (e) {
       if (e.message.toString().includes('No such object')) {
         throw new NotFoundException('image not found');
@@ -88,6 +101,10 @@ export class MediaController {
   }
 
   @Post('delete')
+  @ApiOkResponse({ type: SuccessfulMediaOperationDTO })
+  @ApiCreatedResponse({ type: SuccessfulMediaOperationDTO })
+  @ApiBadRequestResponse({ description: 'Invalid path' })
+  @UseGuards(JwtAuthGuard)
   async deleteMedia(@Body() { path }: DeleteMediaDTO, @Res() res: Response) {
     await this.storageService.delete(path);
     return res.status(HttpStatus.OK).json({ success: true });

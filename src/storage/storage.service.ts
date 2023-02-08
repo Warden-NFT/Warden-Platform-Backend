@@ -90,14 +90,24 @@ export class StorageService {
   }
 
   async getWithMetaData(path: string): Promise<StorageFileWithMetadata> {
-    const [metadata] = await this.storage.bucket(this.bucket).file(path).getMetadata();
-    const fileResponse: DownloadResponse = await this.storage.bucket(this.bucket).file(path).download();
-    const [buffer] = fileResponse;
+    try {
+      const [metadata] = await this.storage.bucket(this.bucket).file(path).getMetadata();
+      const fileResponse: DownloadResponse = await this.storage.bucket(this.bucket).file(path).download();
+      const [buffer] = fileResponse;
 
-    const storageFile = new StorageFile();
-    storageFile.buffer = buffer;
-    storageFile.metadata = new Map<string, string>(Object.entries(metadata || {}));
-    storageFile.contentType = storageFile.metadata.get('contentType');
-    return { file: storageFile, ticketMetadata: metadata.metadata };
+      const storageFile = new StorageFile();
+      storageFile.buffer = buffer;
+      storageFile.metadata = new Map<string, string>(Object.entries(metadata || {}));
+      storageFile.contentType = storageFile.metadata.get('contentType');
+      return { file: storageFile, ticketMetadata: metadata.metadata, timeCreated: metadata.timeCreated };
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

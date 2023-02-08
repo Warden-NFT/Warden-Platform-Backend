@@ -7,4 +7,5 @@ export class StorageFile {
 export class StorageFileWithMetadata {
   file: StorageFile;
   ticketMetadata: string;
+  timeCreated: string;
 }
