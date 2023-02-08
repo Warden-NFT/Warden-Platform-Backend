@@ -21,7 +21,7 @@ export class StorageService {
     this.bucket = StorageConfig.mediaBucket;
   }
 
-  async save(path: string, contentType: string, media: Buffer, metadata: StoredFileMetadata[]) {
+  async save(path: string, contentType: string, media: Buffer, metadata: StoredFileMetadata[] | undefined) {
     if (!media) {
       throw new HttpException(
         {
@@ -31,25 +31,21 @@ export class StorageService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return new Promise((resolve, reject) => {
-      try {
-        const object = metadata.reduce((obj, item) => Object.assign(obj, item), {});
-        const file = this.storage.bucket(this.bucket).file(path);
-        const stream = file.createWriteStream({
-          metadata: {
-            contentType: contentType,
-          },
+    return new Promise((resolve, _) => {
+      const file = this.storage.bucket(this.bucket).file(path);
+      const stream = file.createWriteStream({
+        metadata: {
+          contentType,
+        },
+      });
+      stream.on('finish', async () => {
+        return await file.setMetadata({
+          metadata: metadata,
         });
-        stream.on('finish', async () => {
-          return await file.setMetadata({
-            metadata: object,
-          });
-        });
-        stream.end(media);
-        resolve({ success: true });
-      } catch (error) {
-        reject({ success: false, reason: error });
-      }
+      });
+
+      stream.end(media);
+      resolve({ metadata, contentType });
     });
   }
 
@@ -63,16 +59,12 @@ export class StorageService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return new Promise((resolve, reject) => {
-      Array.from(files).forEach(async (file) => {
-        try {
-          await this.save(file.path, file.contentType, file.media, file.metadata);
-          resolve({ success: true });
-        } catch (error) {
-          reject({ success: false, reason: error });
-        }
-      });
+
+    files.map(async (file) => {
+      await this.save(file.path, file.contentType, file.media, file.metadata);
     });
+
+    return { success: true };
   }
 
   async delete(path: string) {
