@@ -66,19 +66,13 @@ export class MediaController {
 
   @Post('getMedia')
   async downloadMedia(@Body() dto: GetMediaDTO, @Res() res: Response) {
-    // Return the public image URL
-    const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/${dto.path}`;
-    res.send(url);
-  }
-
-  @Post('getMetadata')
-  async getMetadata(@Body() dto: GetMediaDTO, @Res() res: Response) {
-    let storageFile: StorageFileWithMetadata;
+    // Return the public image URL and its customized metadata
     try {
-      storageFile = await this.storageService.getWithMetaData(dto.path);
-      const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/${dto.path}`;
-      res.send({ url, ticketMetadata: storageFile.ticketMetadata });
+      const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${dto.path}`;
+      const { metadata } = await this.storageService.getMetadata(`media/${dto.path}`);
+      res.send({ url, metadata });
     } catch (e) {
+      console.log(e.message);
       if (e.message.toString().includes('No such object')) {
         throw new NotFoundException('image not found');
       } else {
@@ -86,6 +80,24 @@ export class MediaController {
       }
     }
   }
+
+  // @Post('getMetadata')
+  // @Post('getMedia')
+  // async getMetadata(@Body() dto: GetMediaDTO, @Res() res: Response) {
+  //   try {
+  //     let storageFile: StorageFileWithMetadata = await this.storageService.getWithMetaData(dto.path);
+  //     console.log(storageFile);
+  //     const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${dto.path}`;
+  //     console.log(url);
+  //     res.send({ url, ticketMetadata: storageFile.ticketMetadata });
+  //   } catch (e) {
+  //     if (e.message.toString().includes('No such object')) {
+  //       throw new NotFoundException('image not found');
+  //     } else {
+  //       throw new ServiceUnavailableException('internal error');
+  //     }
+  //   }
+  // }
 
   @Post('delete')
   async deleteMedia(@Body() { path }: DeleteMediaDTO, @Res() res: Response) {
