@@ -12,12 +12,10 @@ export enum EVENT_STATUS_TYPE {
 }
 
 export type TicketsMetadata = {
-  data: {
-    attributes: { value: string; trait_type: string }[];
-    description: string;
-    image: string;
-    name: string;
-  }[];
+  attributes: { value: string; trait_type: string }[];
+  description: string;
+  image: string;
+  name: string;
 };
 
 export interface Event {

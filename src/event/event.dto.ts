@@ -7,16 +7,11 @@ import { PlaceType } from './interfaces/location.interface';
 
 @Expose()
 export class TicketsMetadataDTO {
-  data: [
-    {
-      attributes: string;
-      description: string;
-      image: string;
-      name: string;
-    },
-  ];
+  attributes: { value: string; trait_type: string }[];
+  description: string;
+  image: string;
+  name: string;
 }
-
 @Expose()
 export class EventDTO {
   @ApiProperty()

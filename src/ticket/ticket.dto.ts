@@ -1,36 +1,108 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { IsDate, IsNumber, IsString } from 'class-validator';
-import { Types } from 'mongoose';
 import { TicketsMetadataDTO } from 'src/event/event.dto';
+import { Ticket } from './ticket.interface';
+
+export class TicketPriceSettings {
+  @ApiProperty()
+  @IsNumber()
+  default: number;
+
+  @ApiProperty()
+  @IsNumber()
+  min: number;
+
+  @ApiProperty()
+  @IsNumber()
+  max: number;
+}
+export class TicketPriceDTO {
+  @ApiProperty({ type: TicketPriceSettings })
+  general: {
+    default: number;
+    min: number;
+    max: number;
+  };
+
+  @ApiProperty({ type: TicketPriceSettings })
+  vip: {
+    default: number;
+    min: number;
+    max: number;
+  };
+
+  @ApiProperty({ type: TicketPriceSettings })
+  reservedSeat: {
+    default: number;
+    min: number;
+    max: number;
+  };
+}
+
+@Expose()
+export class TicketSetDTO {
+  @ApiProperty()
+  @IsString()
+  _id?: string;
+  tickets: Ticket[];
+
+  @ApiProperty()
+  @IsString()
+  createdDate: Date | string;
+
+  @ApiProperty()
+  @IsString()
+  ownerId: string;
+
+  @ApiProperty()
+  @IsString()
+  ownerAddress: string;
+
+  @ApiProperty()
+  @IsString()
+  smartContractAddress: string;
+
+  @ApiProperty()
+  @IsString()
+  subjectOf: string; // Event ID
+
+  @ApiProperty({ type: TicketPriceDTO })
+  ticketPrice: {
+    general: {
+      default: number;
+      min: number;
+      max: number;
+    };
+    vip: {
+      default: number;
+      min: number;
+      max: number;
+    };
+    reservedSeat: {
+      default: number;
+      min: number;
+      max: number;
+    };
+  };
+
+  @ApiProperty()
+  @IsNumber()
+  royaltyFee: number;
+}
 
 export class TicketDTO {
+  @ApiProperty()
+  @IsString()
+  _id?: string;
+
   @ApiProperty()
   @IsDate()
   dateIssued: Date;
 
   @ApiProperty()
-  @IsString()
-  issuedBy: Types.ObjectId;
-
-  @ApiProperty()
-  @IsString()
-  priceCurrency: string;
-
-  @ApiProperty()
   @IsNumber()
   ticketNumber: number;
-
-  @ApiProperty()
-  @IsNumber()
-  totalPrice: number;
-
-  @ApiProperty()
-  @IsString()
-  ownerId: Types.ObjectId;
-
-  @ApiProperty()
-  @IsString()
-  description: string;
 
   @ApiProperty()
   @IsString()
@@ -38,18 +110,18 @@ export class TicketDTO {
 
   @ApiProperty()
   @IsString()
-  subjectOf: Types.ObjectId; // Event ID
+  description: string;
 
-  @ApiProperty()
-  @IsString()
-  smartContractAddress: string;
-
-  @ApiProperty({ type: TicketsMetadataDTO })
-  ticketMetadata: TicketsMetadataDTO;
+  @ApiProperty({ type: [TicketsMetadataDTO] })
+  ticketMetadata: TicketsMetadataDTO[];
 
   @ApiProperty()
   @IsString()
   ownerAddress: string;
+
+  @ApiProperty()
+  @IsString({ each: true })
+  ownerHistory: string[];
 }
 
 export class VIPTicketDTO extends TicketDTO {
@@ -64,7 +136,11 @@ export class ReservedSeatDTO extends TicketDTO {
   ticketSeat: string;
 }
 
-export class UpdateTicketDTO extends TicketDTO {
-  @ApiProperty({ type: Types.ObjectId })
-  _id: Types.ObjectId;
+export class UpdateTicketDTO {
+  @ApiProperty({ type: TicketDTO })
+  ticket: TicketDTO;
+
+  @ApiProperty()
+  @IsString()
+  ticketSetId: string;
 }

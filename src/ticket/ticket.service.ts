@@ -1,85 +1,147 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, UpdateTicketDTO } from './ticket.dto';
-import { Ticket } from './ticket.interface';
+import { TicketDTO, TicketSetDTO, UpdateTicketDTO } from './ticket.dto';
+import { Ticket, TicketSet } from './ticket.interface';
 
 @Injectable()
 export class TicketService {
-  @InjectModel('Ticket') private ticketModel: Model<Ticket>;
+  @InjectModel('TicketSet') private ticketSetModel: Model<TicketSet>;
 
   // Create a record of tickets generated
-  async createTickets(tickets: TicketDTO[]) {
-    // TODO: add return type
+  async createTicketSet(ticketSet: TicketSetDTO): Promise<TicketSet> {
     try {
-      const response = await this.ticketModel.insertMany(tickets);
-      return response;
+      await new this.ticketSetModel(ticketSet).validate();
+      const newTicket = await new this.ticketSetModel(ticketSet);
+      return newTicket.save();
     } catch (error) {
-      throwBadRequestError(error);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  // Get the ticket set information by ID
+  async getTicketSetByID(ticketSetId: Types.ObjectId): Promise<TicketSet> {
+    try {
+      const ticketSet = await this.ticketSetModel.findById(ticketSetId);
+      if (!ticketSet) throw new NotFoundException(`Ticket set #${ticketSetId} not found`);
+      return ticketSet;
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
   // Get the ticket information by ID
-  async getTicketByID(ticketId: Types.ObjectId): Promise<Ticket> {
+  async getTicketByID(ticketSetId: string, ticketId: string): Promise<Ticket> {
     try {
-      const ticket = await this.ticketModel.findById(ticketId);
-      if (!ticket) throw new NotFoundException(`Ticket #${ticketId} not found`);
-      return ticket;
+      const ticketSet = await this.ticketSetModel.findById(ticketSetId);
+      if (!ticketSet) throw new NotFoundException(`Ticket #${ticketSetId} not found`);
+      return ticketSet.tickets.find((ticket) => ticket._id === ticketId);
     } catch (error) {
-      throwBadRequestError(error);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
   // Get all tickets belonging to an event
-  async getTicketsOfEvent(eventId: Types.ObjectId): Promise<Ticket[]> {
+  async getTicketsOfEvent(eventId: string): Promise<TicketSet[]> {
     try {
-      const tickets = await this.ticketModel.find({ subjectOf: eventId });
+      const tickets = await this.ticketSetModel.find({ subjectOf: eventId });
       return tickets;
     } catch (error) {
-      throwBadRequestError(error);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
-  // Get all tickets belonging to a person
-  async getTicketsOfUser(userId: Types.ObjectId): Promise<Ticket[]> {
+  // TODO: This endpoint should be separated into another module "sales"
+  // // Get all tickets belonging to a person
+  // async getTicketsOfUser(userId: Types.ObjectId): Promise<Ticket[]> {
+  //   try {
+  //     const tickets = await this.ticketModel.find({ ownerId: userId });
+  //     return tickets;
+  //   } catch (error) {
+  //     throwBadRequestError(error);
+  //   }
+  // }
+
+  // Update ticket set details
+  async updateTicketSet(ticketSet: TicketSetDTO, ownerId: string): Promise<TicketSet> {
     try {
-      const tickets = await this.ticketModel.find({ ownerId: userId });
-      return tickets;
+      const ticketSetToBeUpdated = await this.ticketSetModel.findById(ticketSet._id);
+      if (!ticketSetToBeUpdated) {
+        throw new NotFoundException(`Ticket #${ticketSet._id} not found`);
+      }
+      if (ticketSetToBeUpdated.ownerId.toString() !== ownerId) {
+        throw new UnauthorizedException(`You do not have the permission to edit this ticket set`);
+      }
+      const a = await this.ticketSetModel.findByIdAndUpdate(ticketSet._id, ticketSet, { new: true });
+      return a;
     } catch (error) {
-      throwBadRequestError(error);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
   // Update ticket details
-  async updateTicket(ticket: UpdateTicketDTO, ownerId: string): Promise<TicketDTO> {
+  async updateTicket(ticket: TicketDTO, ticketSetId: string, ownerId: string): Promise<TicketDTO> {
     try {
-      const ticketToBeUpdated = await this.ticketModel.findById(ticket._id);
+      const ticketToBeUpdated = await this.ticketSetModel.findById(ticketSetId);
       if (!ticketToBeUpdated) {
-        throw new NotFoundException(`Ticket #${ticket._id} not found`);
+        throw new NotFoundException(`Ticket set #${ticketSetId} not found`);
       }
       if (ticketToBeUpdated.ownerId.toString() !== ownerId) {
         throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
       }
-      const updatedTicket = { ...ticketToBeUpdated, ...ticket };
-      return await this.ticketModel.findByIdAndUpdate(ticket._id, updatedTicket, { new: true });
+      const updatedTicketSet = await this.ticketSetModel.findOneAndUpdate(
+        { _id: ticketSetId, 'tickets._id': ticket._id },
+        { ticket },
+      );
+      return updatedTicketSet.tickets.find((item) => item._id === ticket._id);
     } catch (error) {
       throwBadRequestError(error);
     }
   }
 
-  // Delete an event with the specified ID
-  async deleteTicket(ticketId: Types.ObjectId, ownerId: string): Promise<DeleteResponseDTO> {
-    const ticketToBeDeleted = await this.ticketModel.findById(ticketId);
-    if (!ticketToBeDeleted) {
-      throw new NotFoundException(`Ticket #${ticketId} not found`);
+  // Delete an eventset with the specified ID
+  async deleteTicket(ticketSetId: string, ownerId: string): Promise<DeleteResponseDTO> {
+    const ticketSetToBeDeleted = await this.ticketSetModel.findById(ticketSetId);
+    if (!ticketSetToBeDeleted) {
+      throw new NotFoundException(`Ticket set #${ticketSetId} not found`);
     }
-    if (ticketToBeDeleted.ownerId.toString() !== ownerId) {
-      throw new UnauthorizedException(`You do not have the permission to delete this ticket`);
+    if (ticketSetToBeDeleted.ownerId.toString() !== ownerId) {
+      throw new UnauthorizedException(`You do not have the permission to delete this ticket set`);
     }
     try {
-      return await this.ticketModel.findByIdAndDelete(ticketId);
+      return await this.ticketSetModel.findByIdAndDelete(ticketSetId);
     } catch (error) {
       throwBadRequestError(error);
     }
