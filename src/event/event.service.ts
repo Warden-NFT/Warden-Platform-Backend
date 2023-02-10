@@ -100,7 +100,7 @@ export class EventService {
       const isEventOwner = event.organizerId === eventOrganizerId;
       if (!isEventOwner) throw new UnauthorizedException('You are not the event owner');
       // If the user uploaded the event cover image, save it to GCS
-      await this.storageService.save(`media/${eventId}/cover`, image.mimetype, image.buffer, undefined);
+      await this.storageService.save(`media/${eventId}/cover`, image.mimetype, image.buffer);
       const newImageUrl = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${eventId}/cover`;
       event.image = newImageUrl;
       const updatedEvent = await this.eventModel.findByIdAndUpdate(eventId, { image: newImageUrl }, { new: true });
