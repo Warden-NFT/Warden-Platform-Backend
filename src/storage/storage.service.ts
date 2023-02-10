@@ -21,7 +21,7 @@ export class StorageService {
     this.bucket = StorageConfig.mediaBucket;
   }
 
-  async save(path: string, contentType: string, media: Buffer, metadata: StoredFileMetadata[] | undefined) {
+  async save(path: string, contentType: string, media: Buffer, metadata?: StoredFileMetadata[] | undefined) {
     if (!media) {
       throw new HttpException(
         {

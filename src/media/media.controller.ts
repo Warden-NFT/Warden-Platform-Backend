@@ -61,7 +61,7 @@ export class MediaController {
       res.send({ url, metadata });
     } catch (e) {
       if (e.message.toString().includes('No such object')) {
-        throw new NotFoundException('image not found');
+        throw new NotFoundException('File does not exist');
       } else {
         throw new ServiceUnavailableException('internal error');
       }
@@ -71,7 +71,7 @@ export class MediaController {
   @Post('delete')
   @ApiOkResponse({ type: SuccessfulMediaOperationDTO })
   @ApiCreatedResponse({ type: SuccessfulMediaOperationDTO })
-  @ApiBadRequestResponse({ description: 'Invalid path' })
+  @ApiBadRequestResponse({ description: 'File does not exist' })
   @UseGuards(AdminGuard)
   async deleteMedia(@Body() { path }: DeleteMediaDTO, @Res() res: Response) {
     await this.storageService.delete(path);
