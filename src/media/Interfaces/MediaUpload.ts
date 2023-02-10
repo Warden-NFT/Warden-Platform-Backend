@@ -18,10 +18,10 @@ export interface MultipleMediaUploadPayload {
   folder: string;
   metadata: string;
 }
-export interface DeleteMediaDTO {
+export interface DeleteMedia {
   path: string;
 }
 
-export interface GetMediaDTO {
+export interface GetMedia {
   path: string;
 }

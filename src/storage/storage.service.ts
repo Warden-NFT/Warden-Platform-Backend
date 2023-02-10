@@ -94,7 +94,17 @@ export class StorageService {
   }
 
   async getMetadata(path: string): Promise<StoredFileMetadata> {
-    const [metadata] = await this.storage.bucket(this.bucket).file(path).getMetadata();
-    return metadata;
+    try {
+      const [metadata] = await this.storage.bucket(this.bucket).file(path).getMetadata();
+      return metadata;
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
