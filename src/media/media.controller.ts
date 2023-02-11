@@ -1,21 +1,26 @@
 import {
   Body,
   Controller,
-  Get,
+  HttpStatus,
   NotFoundException,
-  Param,
   Post,
   Res,
   ServiceUnavailableException,
-  UploadedFile,
+  UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { StorageFile } from 'src/storage/storage-file';
+import { AdminGuard } from 'src/auth/jwt.guard';
 import { StorageService } from 'src/storage/storage.service';
-import { MediaUploadPayload } from './Interfaces/MediaUpload';
+import {
+  DeleteMediaDTO,
+  GetMediaDTO,
+  MultipleMediaUploadPayloadDTO,
+  SuccessfulMediaOperationDTO,
+} from './dto/media.dto';
 
 @ApiTags('Media')
 @Controller('media')
@@ -23,40 +28,53 @@ export class MediaController {
   constructor(private storageService: StorageService) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('file', {
-      limits: {
-        files: 1,
-        fileSize: 10000000, // approximately 10 MB
-      },
-    }),
-  )
-  async uploadMedia(@UploadedFile() file: Express.Multer.File, @Body() mediaUploadPayload: MediaUploadPayload) {
-    const { mediaId, folder } = mediaUploadPayload;
-    return this.storageService.save(`media/${folder}/` + mediaId, file.mimetype, file.buffer, [{ mediaId: mediaId }]);
+  @ApiCreatedResponse({ type: SuccessfulMediaOperationDTO })
+  @ApiBadRequestResponse({ description: 'Invalid file or file size is too large' })
+  @UseGuards(AdminGuard)
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadMedia(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() mediaUploadPayload: MultipleMediaUploadPayloadDTO,
+  ) {
+    const { folder, metadata } = mediaUploadPayload;
+    const filesData = files.map((file) => {
+      return {
+        path: `media/${folder}/${file.originalname}`,
+        contentType: file.mimetype,
+        media: file.buffer,
+        metadata: JSON.parse(metadata),
+      };
+    });
+
+    return this.storageService.saveFiles(filesData);
   }
 
-  @Get('/:folder/:mediaId')
-  async downloadMedia(@Param('folder') folder: string, @Param('mediaId') mediaId: string, @Res() res: Response) {
-    console.log(mediaId);
-    let storageFile: StorageFile;
+  @Post('getMedia')
+  @ApiOkResponse({ type: String })
+  @ApiBadRequestResponse({ description: 'Incorrect path' })
+  @UseGuards(AdminGuard)
+  async downloadMedia(@Body() dto: GetMediaDTO, @Res() res: Response) {
+    // Return the public image URL and its customized metadata
     try {
-      storageFile = await this.storageService.getWithMetaData(`media/${folder}/${mediaId}`);
+      const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${dto.path}`;
+      const { metadata } = await this.storageService.getMetadata(`media/${dto.path}`);
+      res.send({ url, metadata });
     } catch (e) {
       if (e.message.toString().includes('No such object')) {
-        throw new NotFoundException('image not found');
+        throw new NotFoundException('File does not exist');
       } else {
         throw new ServiceUnavailableException('internal error');
       }
     }
+  }
 
-    // Return the actual image file
-    // res.setHeader('Content-Type', storageFile.contentType);
-    // res.setHeader('Cache-Control', 'max-age=60d');
-    // res.end(storageFile.buffer);
-
-    // Return the public image URL
-    const url = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${folder}/${mediaId}`;
-    res.send(url);
+  @Post('delete')
+  @ApiOkResponse({ type: SuccessfulMediaOperationDTO })
+  @ApiCreatedResponse({ type: SuccessfulMediaOperationDTO })
+  @ApiBadRequestResponse({ description: 'File does not exist' })
+  @UseGuards(AdminGuard)
+  async deleteMedia(@Body() { path }: DeleteMediaDTO, @Res() res: Response) {
+    await this.storageService.delete(path);
+    return res.status(HttpStatus.OK).json({ success: true });
   }
 }

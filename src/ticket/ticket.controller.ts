@@ -10,8 +10,8 @@ import {
 import mongoose from 'mongoose';
 import { EventOrganizerGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
 import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, UpdateTicketDTO } from './ticket.dto';
-import { Ticket } from './ticket.interface';
+import { TicketDTO, TicketSetDTO, UpdateTicketDTO } from './ticket.dto';
+import { Ticket, TicketSet } from './ticket.interface';
 import { TicketService } from './ticket.service';
 
 @ApiTags('Ticket')
@@ -23,32 +23,51 @@ export class TicketController {
   @ApiCreatedResponse({ type: InsertManyResponseDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
-  async createTickets(@Body() tickets: TicketDTO[]) {
-    return this.ticketService.createTickets(tickets);
+  async createTicketSet(@Body() tickets: TicketSetDTO) {
+    return this.ticketService.createTicketSet(tickets);
   }
 
-  @Get('/getTicketByID')
+  @Get('/getTicketSet')
+  @ApiOkResponse({ type: TicketSetDTO })
+  @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
+  @UseGuards(JwtAuthGuard)
+  async getTicketSet(@Query('ticketSetId') ticketSetId: string): Promise<TicketSetDTO> {
+    return this.ticketService.getTicketSetByID(new mongoose.Types.ObjectId(ticketSetId));
+  }
+
+  @Get('/getTicket')
   @ApiOkResponse({ type: TicketDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicketByID(@Query('id') ticketId: string): Promise<Ticket> {
-    return this.ticketService.getTicketByID(new mongoose.Types.ObjectId(ticketId));
+  async getTicket(@Query('ticketSetId') ticketSetId: string, @Query('ticketId') ticketId: string): Promise<Ticket> {
+    return this.ticketService.getTicketByID(ticketSetId, ticketId);
   }
 
   @Get('/getTicketsOfEvent')
   @ApiOkResponse({ type: [TicketDTO] })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicketOfEvent(@Query('id') eventId: string): Promise<Ticket[]> {
-    return this.ticketService.getTicketsOfEvent(new mongoose.Types.ObjectId(eventId));
+  async getTicketOfEvent(@Query('eventId') eventId: string): Promise<TicketSet[]> {
+    return this.ticketService.getTicketsOfEvent(eventId);
   }
 
-  @Get('/getTicketsOfUser')
-  @ApiOkResponse({ type: [TicketDTO] })
+  // TODO: This endpoint should be separated into another module "sales"
+  // @Get('/getTicketsOfUser')
+  // @ApiOkResponse({ type: [TicketDTO] })
+  // @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
+  // @UseGuards(JwtAuthGuard)
+  // async getTicketsOfUser(@Query('id') userId: string): Promise<Ticket[]> {
+  //   return this.ticketService.getTicketsOfUser(new mongoose.Types.ObjectId(userId));
+  // }
+
+  @Put('/updateTicketSet')
+  @ApiOkResponse({ type: TicketDTO })
+  @ApiNotFoundResponse({ description: 'Ticket not found' })
+  @ApiUnauthorizedResponse({ description: 'You do not have the permission to edit this ticket' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicketsOfUser(@Query('id') userId: string): Promise<Ticket[]> {
-    return this.ticketService.getTicketsOfUser(new mongoose.Types.ObjectId(userId));
+  async updateTicketSet(@Body() dto: TicketSetDTO, @Req() req) {
+    return this.ticketService.updateTicketSet(dto, req.user.uid);
   }
 
   @Put('/updateTicket')
@@ -57,17 +76,17 @@ export class TicketController {
   @ApiUnauthorizedResponse({ description: 'You do not have the permission to edit this ticket' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async updateTicket(@Body() dto: UpdateTicketDTO, @Req() req) {
-    return this.ticketService.updateTicket(dto, req.user.uid);
+  async updateTicket(@Body() updateTicketDTO: UpdateTicketDTO, @Req() req) {
+    return this.ticketService.updateTicket(updateTicketDTO.ticket, updateTicketDTO.ticketSetId, req.user.uid);
   }
 
-  @Delete('/updateTicket')
+  @Delete('/deleteTicketSet')
   @ApiOkResponse({ type: DeleteResponseDTO })
-  @ApiNotFoundResponse({ description: 'Ticket not found' })
+  @ApiNotFoundResponse({ description: 'Ticket set not found' })
   @ApiUnauthorizedResponse({ description: 'You do not have the permission to delete this ticket' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async deleteTicket(@Query('id') ticketId: string, @Req() req) {
-    return this.ticketService.deleteTicket(new mongoose.Types.ObjectId(ticketId), req.user.uid);
+  async deleteTicket(@Query('ticketSetId') ticketSetId: string, @Req() req) {
+    return this.ticketService.deleteTicket(ticketSetId, req.user.uid);
   }
 }
