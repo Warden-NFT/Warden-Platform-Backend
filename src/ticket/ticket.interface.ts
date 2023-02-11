@@ -1,4 +1,3 @@
-import { Types } from 'mongoose';
 import { TicketsMetadata } from 'src/event/interfaces/event.interface';
 
 export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
@@ -6,7 +5,7 @@ export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
 export interface TicketSet {
   _id?: string;
   tickets: Ticket[];
-  createdDate: Date | string;
+  createdDate: string;
   ownerId: string;
   ownerAddress: string;
   smartContractAddress: string;

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsDate, IsNumber, IsString } from 'class-validator';
+import { IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
 import { TicketsMetadataDTO } from 'src/event/event.dto';
 import { Ticket } from './ticket.interface';
 
@@ -19,21 +19,21 @@ export class TicketPriceSettings {
 }
 export class TicketPriceDTO {
   @ApiProperty({ type: TicketPriceSettings })
-  general: {
+  general?: {
     default: number;
     min: number;
     max: number;
   };
 
   @ApiProperty({ type: TicketPriceSettings })
-  vip: {
+  vip?: {
     default: number;
     min: number;
     max: number;
   };
 
   @ApiProperty({ type: TicketPriceSettings })
-  reservedSeat: {
+  reservedSeat?: {
     default: number;
     min: number;
     max: number;
@@ -49,7 +49,7 @@ export class TicketSetDTO {
 
   @ApiProperty()
   @IsString()
-  createdDate: Date | string;
+  createdDate: string;
 
   @ApiProperty()
   @IsString()
@@ -88,6 +88,8 @@ export class TicketSetDTO {
 
   @ApiProperty()
   @IsNumber()
+  @Min(0)
+  @Max(1)
   royaltyFee: number;
 }
 
