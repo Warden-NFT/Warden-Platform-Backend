@@ -31,8 +31,8 @@ export class TicketController {
   @ApiOkResponse({ type: TicketSetDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicketSet(@Query('ticketSetId') ticketSetId: string): Promise<TicketSetDTO> {
-    return this.ticketService.getTicketSetByID(new mongoose.Types.ObjectId(ticketSetId));
+  async getTicketSet(@Query('ticketSetId') ticketSetId: string): Promise<TicketSet> {
+    return this.ticketService.getTicketSetByID(ticketSetId);
   }
 
   @Get('/getTicket')

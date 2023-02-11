@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
 import { TicketDTO, TicketSetDTO } from './ticket.dto';
@@ -28,7 +28,7 @@ export class TicketService {
   }
 
   // Get the ticket set information by ID
-  async getTicketSetByID(ticketSetId: Types.ObjectId): Promise<TicketSet> {
+  async getTicketSetByID(ticketSetId: string): Promise<TicketSet> {
     try {
       const ticketSet = await this.ticketSetModel.findById(ticketSetId);
       if (!ticketSet) throw new NotFoundException(`Ticket set #${ticketSetId} not found`);
