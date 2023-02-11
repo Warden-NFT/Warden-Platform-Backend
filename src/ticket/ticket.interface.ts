@@ -11,17 +11,17 @@ export interface TicketSet {
   smartContractAddress: string;
   subjectOf: string; // Event ID
   ticketPrice: {
-    general: {
+    general?: {
       default: number;
       min: number;
       max: number;
     };
-    vip: {
+    vip?: {
       default: number;
       min: number;
       max: number;
     };
-    reservedSeat: {
+    reservedSeat?: {
       default: number;
       min: number;
       max: number;

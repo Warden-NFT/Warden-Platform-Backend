@@ -54,46 +54,55 @@ export const TicketSetSchema = new mongoose.Schema({
   subjectOf: String, // Event ID
   ticketPrice: {
     general: {
-      default: {
-        type: Number,
-        required: false,
+      type: {
+        default: {
+          type: Number,
+          required: false,
+        },
+        min: {
+          type: Number,
+          required: false,
+        },
+        max: {
+          type: Number,
+          required: false,
+        },
       },
-      min: {
-        type: Number,
-        required: false,
-      },
-      max: {
-        type: Number,
-        required: false,
-      },
+      required: false,
     },
     vip: {
-      default: {
-        type: Number,
-        required: false,
+      type: {
+        default: {
+          type: Number,
+          required: false,
+        },
+        min: {
+          type: Number,
+          required: false,
+        },
+        max: {
+          type: Number,
+          required: false,
+        },
       },
-      min: {
-        type: Number,
-        required: false,
-      },
-      max: {
-        type: Number,
-        required: false,
-      },
+      required: false,
     },
     reservedSeat: {
-      default: {
-        type: Number,
-        required: false,
+      type: {
+        default: {
+          type: Number,
+          required: false,
+        },
+        min: {
+          type: Number,
+          required: false,
+        },
+        max: {
+          type: Number,
+          required: false,
+        },
       },
-      min: {
-        type: Number,
-        required: false,
-      },
-      max: {
-        type: Number,
-        required: false,
-      },
+      required: false,
     },
   },
   royaltyFee: {
