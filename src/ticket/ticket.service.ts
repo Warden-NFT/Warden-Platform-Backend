@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, TicketSetDTO, UpdateTicketDTO } from './ticket.dto';
+import { TicketDTO, TicketSetDTO } from './ticket.dto';
 import { Ticket, TicketSet } from './ticket.interface';
 
 @Injectable()
