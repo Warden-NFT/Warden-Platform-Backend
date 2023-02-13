@@ -4,10 +4,12 @@ import { TicketController } from './ticket.controller';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TicketSetSchema } from './ticket.schema';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
   imports: [
     ConfigModule,
+    StorageModule,
     MongooseModule.forFeature([{ name: 'TicketSet', schema: TicketSetSchema, collection: 'tickets' }]),
   ],
   providers: [TicketService],
