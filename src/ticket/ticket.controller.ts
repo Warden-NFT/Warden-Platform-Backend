@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  Query,
+  Req,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
@@ -7,10 +20,10 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import mongoose from 'mongoose';
-import { EventOrganizerGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
+import { AdminGuard, EventOrganizerGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
+import { SuccessfulMediaOperationDTO } from 'src/media/dto/media.dto';
 import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, TicketSetDTO, UpdateTicketDTO } from './ticket.dto';
+import { TicketDTO, TicketSetDTO, UpdateTicketDTO, UpdateTicketSetImagesDTO } from './ticket.dto';
 import { Ticket, TicketSet } from './ticket.interface';
 import { TicketService } from './ticket.service';
 
@@ -68,6 +81,19 @@ export class TicketController {
   @UseGuards(JwtAuthGuard)
   async updateTicketSet(@Body() dto: TicketSetDTO, @Req() req) {
     return this.ticketService.updateTicketSet(dto, req.user.uid);
+  }
+
+  @Post('/saveTicketSetImages')
+  @ApiOkResponse({ type: SuccessfulMediaOperationDTO })
+  @ApiBadRequestResponse({ description: 'Invalid file or file size is too large' })
+  @UseGuards(EventOrganizerGuard)
+  @UseInterceptors(FilesInterceptor('files'))
+  async saveTicketSetImages(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() dto: UpdateTicketSetImagesDTO,
+    @Req() req,
+  ) {
+    this.ticketService.updateTicketSetImages(files, dto, req.user.uid);
   }
 
   @Put('/updateTicket')

@@ -1,13 +1,15 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { StorageService } from 'src/storage/storage.service';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, TicketSetDTO } from './ticket.dto';
+import { TicketDTO, TicketSetDTO, UpdateTicketSetImagesDTO } from './ticket.dto';
 import { Ticket, TicketSet } from './ticket.interface';
 
 @Injectable()
 export class TicketService {
+  constructor(private storageService: StorageService) {}
   @InjectModel('TicketSet') private ticketSetModel: Model<TicketSet>;
 
   // Create a record of tickets generated
@@ -100,6 +102,41 @@ export class TicketService {
       }
       const a = await this.ticketSetModel.findByIdAndUpdate(ticketSet._id, ticketSet, { new: true });
       return a;
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  // Update ticket set images
+  async updateTicketSetImages(
+    files: Express.Multer.File[],
+    mediaUploadPayload: UpdateTicketSetImagesDTO,
+    ownerId: string,
+  ) {
+    const { folder, metadata, ticketSetId } = mediaUploadPayload;
+    try {
+      const ticketSetToBeUpdated = await this.ticketSetModel.findById(ticketSetId);
+      if (ticketSetToBeUpdated && ticketSetToBeUpdated.ownerId.toString() !== ownerId) {
+        throw new UnauthorizedException(`You do not have the permission to edit this ticket set`);
+      }
+      if (!ticketSetToBeUpdated) {
+        const filesData = files.map((file) => {
+          return {
+            path: `media/${folder}/${file.originalname}`,
+            contentType: file.mimetype,
+            media: file.buffer,
+            metadata: JSON.parse(metadata),
+          };
+        });
+
+        return this.storageService.saveFiles(filesData);
+      }
     } catch (error) {
       throw new HttpException(
         {

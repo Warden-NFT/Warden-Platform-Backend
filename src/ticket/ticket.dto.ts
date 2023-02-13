@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
 import { TicketsMetadataDTO } from 'src/event/event.dto';
+import { MultipleMediaUploadPayloadDTO } from 'src/media/dto/media.dto';
 import { Ticket } from './ticket.interface';
 
 export class TicketPriceSettings {
@@ -91,6 +92,12 @@ export class TicketSetDTO {
   @Min(0)
   @Max(1)
   royaltyFee: number;
+}
+
+export class UpdateTicketSetImagesDTO extends MultipleMediaUploadPayloadDTO {
+  @ApiProperty()
+  @IsString()
+  ticketSetId?: string;
 }
 
 export class TicketDTO {
