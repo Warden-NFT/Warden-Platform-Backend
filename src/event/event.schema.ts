@@ -96,9 +96,9 @@ export const EventSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  // Array of all ticket metadata
-  ticketsMetadata: {
-    type: Object,
+  // MongoDB object ID of the ticket set
+  ticketSetId: {
+    type: String,
     required: false,
   },
 });
