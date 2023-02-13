@@ -19,18 +19,27 @@ import {
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
+  refs,
 } from '@nestjs/swagger';
-import { AdminGuard, EventOrganizerGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
+import { EventOrganizerGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
 import { SuccessfulMediaOperationDTO } from 'src/media/dto/media.dto';
+import { StorageService } from 'src/storage/storage.service';
 import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, TicketSetDTO, UpdateTicketDTO, UpdateTicketSetImagesDTO } from './ticket.dto';
+import {
+  TicketDTO,
+  TicketSetDTO,
+  TicketsMetadataDTO,
+  UpdateTicketDTO,
+  UpdateTicketSetImagesDTO,
+  VIPTicketDTO,
+} from './ticket.dto';
 import { Ticket, TicketSet } from './ticket.interface';
 import { TicketService } from './ticket.service';
 
 @ApiTags('Ticket')
 @Controller('ticket')
 export class TicketController {
-  constructor(private ticketService: TicketService) {}
+  constructor(private ticketService: TicketService, private storageService: StorageService) {}
 
   @Post('/createEventTickets')
   @ApiCreatedResponse({ type: InsertManyResponseDTO })
@@ -49,7 +58,7 @@ export class TicketController {
   }
 
   @Get('/getTicket')
-  @ApiOkResponse({ type: TicketDTO })
+  @ApiOkResponse({ schema: { anyOf: refs(TicketDTO, VIPTicketDTO) } })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
   async getTicket(@Query('ticketSetId') ticketSetId: string, @Query('ticketId') ticketId: string): Promise<Ticket> {
@@ -57,11 +66,20 @@ export class TicketController {
   }
 
   @Get('/getTicketsOfEvent')
-  @ApiOkResponse({ type: [TicketDTO] })
+  @ApiOkResponse({ type: TicketDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
   async getTicketOfEvent(@Query('eventId') eventId: string): Promise<TicketSet[]> {
     return this.ticketService.getTicketsOfEvent(eventId);
+  }
+
+  @Get('/metadata')
+  @ApiOkResponse({ type: TicketsMetadataDTO })
+  @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
+  async getTicketMetadat(@Query('path') _path: string) {
+    const path = _path.split(',').reduce((prev, curr) => `${prev}/${curr}`);
+    const { metadata } = await this.storageService.getMetadata(`media/${path}`);
+    return metadata;
   }
 
   // TODO: This endpoint should be separated into another module "sales"
@@ -74,7 +92,7 @@ export class TicketController {
   // }
 
   @Put('/updateTicketSet')
-  @ApiOkResponse({ type: TicketDTO })
+  @ApiOkResponse({ schema: { anyOf: refs(TicketDTO, VIPTicketDTO) } })
   @ApiNotFoundResponse({ description: 'Ticket not found' })
   @ApiUnauthorizedResponse({ description: 'You do not have the permission to edit this ticket' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
@@ -97,7 +115,7 @@ export class TicketController {
   }
 
   @Put('/updateTicket')
-  @ApiOkResponse({ type: TicketDTO })
+  @ApiOkResponse({ schema: { anyOf: refs(TicketDTO, VIPTicketDTO) } })
   @ApiNotFoundResponse({ description: 'Ticket not found' })
   @ApiUnauthorizedResponse({ description: 'You do not have the permission to edit this ticket' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
