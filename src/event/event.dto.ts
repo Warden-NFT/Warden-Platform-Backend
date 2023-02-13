@@ -95,8 +95,9 @@ export class EventDTO {
   @IsString()
   smartContractAddress: string;
 
-  @ApiProperty({ type: TicketsMetadataDTO })
-  ticketsMetadata: TicketsMetadata;
+  @ApiProperty()
+  @IsString()
+  ticketSetId: string;
 }
 
 @Expose()

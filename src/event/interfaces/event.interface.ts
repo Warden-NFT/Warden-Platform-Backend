@@ -43,7 +43,7 @@ export interface Event {
   ticketType: TicketType;
   ownerAddress: string;
   smartContractAddress: string;
-  ticketsMetadata: TicketsMetadata;
+  ticketSetId: string;
 }
 
 export interface TicketSupply {
