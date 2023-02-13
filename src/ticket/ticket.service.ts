@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { StorageService } from 'src/storage/storage.service';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, TicketSetDTO, UpdateTicketSetImagesDTO } from './ticket.dto';
+import { TicketDTO, TicketSetDTO, UpdateTicketSetImagesDTO, VIPTicketDTO } from './ticket.dto';
 import { Ticket, TicketSet } from './ticket.interface';
 
 @Injectable()
@@ -149,7 +149,11 @@ export class TicketService {
   }
 
   // Update ticket details
-  async updateTicket(ticket: TicketDTO, ticketSetId: string, ownerId: string): Promise<TicketDTO> {
+  async updateTicket(
+    ticket: TicketDTO | VIPTicketDTO,
+    ticketSetId: string,
+    ownerId: string,
+  ): Promise<TicketDTO | VIPTicketDTO> {
     try {
       const ticketToBeUpdated = await this.ticketSetModel.findById(ticketSetId);
       if (!ticketToBeUpdated) {

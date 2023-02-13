@@ -1,9 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
-import { TicketsMetadataDTO } from 'src/event/event.dto';
 import { MultipleMediaUploadPayloadDTO } from 'src/media/dto/media.dto';
 import { Ticket } from './ticket.interface';
+
+export class TicketsMetadataDTO {
+  @ApiProperty()
+  attributes: { value: string; trait_type: string }[];
+
+  @ApiProperty()
+  @IsString()
+  description: string;
+
+  @ApiProperty()
+  @IsString()
+  image: string;
+
+  @ApiProperty()
+  @IsString()
+  name: string;
+}
 
 export class TicketPriceSettings {
   @ApiProperty()
