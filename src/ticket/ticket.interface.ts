@@ -2,6 +2,8 @@ import { TicketsMetadata } from 'src/event/interfaces/event.interface';
 
 export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
 
+export type Currency = 'ETH' | 'MATIC';
+
 export interface TicketSet {
   _id?: string;
   tickets: Ticket[];
@@ -10,6 +12,7 @@ export interface TicketSet {
   ownerAddress: string;
   smartContractAddress: string;
   subjectOf: string; // Event ID
+  currency: Currency;
   ticketPrice: {
     general?: {
       default: number;
@@ -28,6 +31,7 @@ export interface TicketSet {
     };
   };
   royaltyFee: number;
+  enableResale: boolean;
 }
 
 export interface Ticket {

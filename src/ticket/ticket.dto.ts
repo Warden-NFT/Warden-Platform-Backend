@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
 import { MultipleMediaUploadPayloadDTO } from 'src/media/dto/media.dto';
-import { Ticket } from './ticket.interface';
+import { Currency, Ticket } from './ticket.interface';
 
 export class TicketsMetadataDTO {
   @ApiProperty()
@@ -84,6 +84,10 @@ export class TicketSetDTO {
   @IsString()
   subjectOf: string; // Event ID
 
+  @ApiProperty()
+  @IsString()
+  currency: Currency;
+
   @ApiProperty({ type: TicketPriceDTO })
   ticketPrice: {
     general: {
@@ -108,6 +112,10 @@ export class TicketSetDTO {
   @Min(0)
   @Max(1)
   royaltyFee: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  enableResale: boolean;
 }
 
 export class UpdateTicketSetImagesDTO extends MultipleMediaUploadPayloadDTO {

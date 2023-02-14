@@ -5,7 +5,7 @@ export const TicketSetSchema = new mongoose.Schema({
     {
       _id: {
         type: String,
-        required: true,
+        required: false,
       },
       dateIssued: {
         type: String,
@@ -51,7 +51,14 @@ export const TicketSetSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  subjectOf: String, // Event ID
+  subjectOf: {
+    type: String,
+    required: false,
+  }, // Event ID
+  currency: {
+    type: String,
+    required: true,
+  },
   ticketPrice: {
     general: {
       type: {
@@ -109,4 +116,5 @@ export const TicketSetSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  enableResale: Boolean,
 });
