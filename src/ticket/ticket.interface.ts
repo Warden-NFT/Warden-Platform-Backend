@@ -6,7 +6,11 @@ export type Currency = 'ETH' | 'MATIC';
 
 export interface TicketSet {
   _id?: string;
-  tickets: Ticket[];
+  tickets: {
+    generalTickets: Ticket[];
+    vipTickets: VIPTicket[];
+    reservedSeatTickets: Ticket[];
+  };
   createdDate: string;
   ownerId: string;
   ownerAddress: string;
@@ -45,7 +49,7 @@ export interface Ticket {
   ownerHistory: string[];
 }
 
-export interface VIPTicked extends Ticket {
+export interface VIPTicket extends Ticket {
   benefits: string; // placeholder
 }
 

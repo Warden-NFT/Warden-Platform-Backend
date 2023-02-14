@@ -1,38 +1,54 @@
 import mongoose from 'mongoose';
 
+export const TicketSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: false,
+  },
+  dateIssued: {
+    type: String,
+    required: true,
+  },
+  ticketNumber: {
+    type: Number,
+    required: false,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: false,
+  },
+  ticketMetadata: [
+    {
+      attributes: [{ value: String, trait_type: String }],
+      description: String,
+      image: String,
+      name: String,
+    },
+  ],
+  ownerAddress: {
+    type: String,
+    reqired: false,
+  },
+  ownerHistory: {
+    type: [String],
+    required: false,
+  },
+  benefits: {
+    type: String,
+    required: false,
+  },
+});
+
 export const TicketSetSchema = new mongoose.Schema({
   tickets: [
     {
-      _id: {
-        type: String,
-        required: false,
-      },
-      dateIssued: {
-        type: String,
-        required: true,
-      },
-      ticketNumber: {
-        type: Number,
-        required: false,
-      },
-      name: {
-        type: String,
-        required: true,
-      },
-      description: {
-        type: String,
-        required: false,
-      },
-      ticketMetadata: [
-        {
-          attributes: [{ value: String, trait_type: String }],
-          description: String,
-          image: String,
-          name: String,
-        },
-      ],
-      ownerAddress: String,
-      ownerHistory: [String],
+      generalTickets: TicketSchema,
+      vipTickets: TicketSchema,
+      reservedSeatTickets: TicketSchema,
     },
   ],
   createdDate: {
