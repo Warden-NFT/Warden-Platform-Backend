@@ -103,16 +103,26 @@ export class ReservedSeatDTO extends TicketDTO {
 }
 
 @Expose()
+export class TicketTypesDTO {
+  genreralTickets;
+  vipTickets;
+  reservedSeatTickets;
+  // genreralTickets: TicketDTO[] | [];
+  // vipTickets: VIPTicketDTO[] | [];
+  // reservedSeatTickets: ReservedSeatDTO[] | [];
+}
+
+@Expose()
 export class TicketSetDTO {
   @ApiProperty()
   @IsString()
   _id?: string;
 
-  @ApiProperty({ type: { genreralTickets: [TicketDTO], vipTickets: [TicketDTO], reservedSeatTickets: [TicketDTO] } })
+  @ApiProperty({ type: TicketTypesDTO })
   tickets: {
-    generalTickets: TicketDTO[];
-    vipTickets: VIPTicketDTO[];
-    reservedSeatTickets: ReservedSeatDTO[];
+    genreralTickets: TicketDTO[] | [];
+    vipTickets: VIPTicketDTO[] | [];
+    reservedSeatTickets: ReservedSeatDTO[] | [];
   };
 
   @ApiProperty()

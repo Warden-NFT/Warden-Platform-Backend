@@ -44,13 +44,11 @@ export const TicketSchema = new mongoose.Schema({
 });
 
 export const TicketSetSchema = new mongoose.Schema({
-  tickets: [
-    {
-      generalTickets: TicketSchema,
-      vipTickets: TicketSchema,
-      reservedSeatTickets: TicketSchema,
-    },
-  ],
+  tickets: {
+    generalTickets: [TicketSchema],
+    vipTickets: [TicketSchema],
+    reservedSeatTickets: [TicketSchema],
+  },
   createdDate: {
     type: String,
     required: true,
