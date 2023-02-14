@@ -57,12 +57,63 @@ export class TicketPriceDTO {
   };
 }
 
+export class TicketDTO {
+  @ApiProperty()
+  @IsString()
+  _id?: string;
+
+  @ApiProperty()
+  @IsDate()
+  dateIssued: Date;
+
+  @ApiProperty()
+  @IsNumber()
+  ticketNumber: number;
+
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  description: string;
+
+  @ApiProperty({ type: [TicketsMetadataDTO] })
+  ticketMetadata: TicketsMetadataDTO[];
+
+  @ApiProperty()
+  @IsString()
+  ownerAddress: string;
+
+  @ApiProperty()
+  @IsString({ each: true })
+  ownerHistory: string[];
+}
+
+export class VIPTicketDTO extends TicketDTO {
+  @ApiProperty()
+  @IsString()
+  benefits: string; // placeholder
+}
+
+export class ReservedSeatDTO extends TicketDTO {
+  @ApiProperty()
+  @IsString()
+  ticketSeat: string;
+}
+
 @Expose()
 export class TicketSetDTO {
   @ApiProperty()
   @IsString()
   _id?: string;
-  tickets: Ticket[];
+
+  @ApiProperty({ type: { genreralTickets: [TicketDTO], vipTickets: [TicketDTO], reservedSeatTickets: [TicketDTO] } })
+  tickets: {
+    generalTickets: TicketDTO[];
+    vipTickets: VIPTicketDTO[];
+    reservedSeatTickets: ReservedSeatDTO[];
+  };
 
   @ApiProperty()
   @IsString()
@@ -122,51 +173,6 @@ export class UpdateTicketSetImagesDTO extends MultipleMediaUploadPayloadDTO {
   @ApiProperty()
   @IsString()
   ticketSetId?: string;
-}
-
-export class TicketDTO {
-  @ApiProperty()
-  @IsString()
-  _id?: string;
-
-  @ApiProperty()
-  @IsDate()
-  dateIssued: Date;
-
-  @ApiProperty()
-  @IsNumber()
-  ticketNumber: number;
-
-  @ApiProperty()
-  @IsString()
-  name: string;
-
-  @ApiProperty()
-  @IsString()
-  description: string;
-
-  @ApiProperty({ type: [TicketsMetadataDTO] })
-  ticketMetadata: TicketsMetadataDTO[];
-
-  @ApiProperty()
-  @IsString()
-  ownerAddress: string;
-
-  @ApiProperty()
-  @IsString({ each: true })
-  ownerHistory: string[];
-}
-
-export class VIPTicketDTO extends TicketDTO {
-  @ApiProperty()
-  @IsString()
-  benefits: string; // placeholder
-}
-
-export class ReservedSeatDTO extends TicketDTO {
-  @ApiProperty()
-  @IsString()
-  ticketSeat: string;
 }
 
 export class UpdateTicketDTO {
