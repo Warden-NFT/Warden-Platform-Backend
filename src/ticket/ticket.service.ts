@@ -51,7 +51,17 @@ export class TicketService {
     try {
       const ticketSet = await this.ticketSetModel.findById(ticketSetId);
       if (!ticketSet) throw new NotFoundException(`Ticket #${ticketSetId} not found`);
-      return ticketSet.tickets.find((ticket) => ticket._id === ticketId);
+      let matchedTicket;
+      for (const key in ticketSet.tickets) {
+        const matchingTicket = ticketSet.tickets[key].find((ticket) => ticket._id === ticketId);
+        if (matchingTicket) {
+          matchedTicket = matchingTicket;
+        }
+      }
+      if (!matchedTicket) {
+        throw new NotFoundException(`Ticket #${ticketSet._id} not found`);
+      }
+      return matchedTicket;
     } catch (error) {
       throw new HttpException(
         {
@@ -162,11 +172,23 @@ export class TicketService {
       if (ticketToBeUpdated.ownerId.toString() !== ownerId) {
         throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
       }
-      const updatedTicketSet = await this.ticketSetModel.findOneAndUpdate(
-        { _id: ticketSetId, 'tickets._id': ticket._id },
-        { ticket },
-      );
-      return updatedTicketSet.tickets.find((item) => item._id === ticket._id);
+      const ticketSetToBeUpdated = await this.ticketSetModel.findById(ticketSetId);
+      const ticketTypes = Object.keys(ticketSetToBeUpdated.tickets);
+      let _key = '';
+      let _index = 0;
+      ticketTypes.forEach((key) => {
+        ticketSetToBeUpdated.tickets[key].forEach((item, index) => {
+          if (item._id === ticket._id) {
+            ticketSetToBeUpdated.tickets[key][index] = { ...ticketSetToBeUpdated.tickets[key][index], ...ticket };
+            _key = key;
+            _index = index;
+          }
+        });
+      });
+      const savedTicketSet = await ticketSetToBeUpdated.save();
+      if (savedTicketSet) {
+        return savedTicketSet.tickets[_key][_index];
+      }
     } catch (error) {
       throwBadRequestError(error);
     }
