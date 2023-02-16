@@ -16,7 +16,6 @@ export interface TicketSet {
   ownerAddress: string;
   smartContractAddress: string;
   subjectOf: string; // Event ID
-  currency: Currency;
   ticketPrice: {
     general?: {
       default: number;
@@ -36,6 +35,8 @@ export interface TicketSet {
   };
   royaltyFee: number;
   enableResale: boolean;
+  currency: Currency;
+  ticketQuota: TicketQuota;
 }
 
 export interface Ticket {
@@ -55,4 +56,10 @@ export interface VIPTicket extends Ticket {
 
 export interface ReservedSeatDTO extends Ticket {
   ticketSeat: string;
+}
+
+export interface TicketQuota {
+  general?: number;
+  vip?: number;
+  reservedSeat?: number;
 }

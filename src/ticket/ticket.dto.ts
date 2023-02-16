@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsBoolean, IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
 import { MultipleMediaUploadPayloadDTO } from 'src/media/dto/media.dto';
-import { Currency, Ticket } from './ticket.interface';
+import { Currency, TicketQuota } from './ticket.interface';
 
 export class TicketsMetadataDTO {
   @ApiProperty()
@@ -102,6 +102,12 @@ export class ReservedSeatDTO extends TicketDTO {
   ticketSeat: string;
 }
 
+export class TicketQuotaDTO {
+  general?: number;
+  vip?: number;
+  reservedSeat?: number;
+}
+
 @Expose()
 export class TicketTypesDTO {
   @ApiProperty({ type: [TicketDTO] })
@@ -179,6 +185,9 @@ export class TicketSetDTO {
   @ApiProperty()
   @IsBoolean()
   enableResale: boolean;
+
+  @ApiProperty({ type: TicketQuotaDTO })
+  ticketQuota: TicketQuota;
 }
 
 export class UpdateTicketSetImagesDTO extends MultipleMediaUploadPayloadDTO {

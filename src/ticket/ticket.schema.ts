@@ -130,5 +130,25 @@ export const TicketSetSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  enableResale: Boolean,
+  enableResale: {
+    type: Boolean,
+    required: true,
+  },
+  ticketQuota: {
+    type: {
+      general: {
+        type: Number,
+        required: false,
+      },
+      vip: {
+        type: Number,
+        required: false,
+      },
+      reservedSeat: {
+        type: Number,
+        required: false,
+      },
+    },
+    required: false,
+  },
 });
