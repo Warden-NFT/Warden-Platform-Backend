@@ -12,6 +12,7 @@ import { EventModule } from './event/event.module';
 import { TicketModule } from './ticket/ticket.module';
 import { OtpModule } from './otp/otp.module';
 import { SmartContractModule } from './smart-contract/smart-contract.module';
+import { MarketModule } from './market/market.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SmartContractModule } from './smart-contract/smart-contract.module';
     TicketModule,
     OtpModule,
     SmartContractModule,
+    MarketModule,
   ],
   controllers: [AppController, MediaController],
   providers: [AppService],
