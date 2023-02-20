@@ -7,6 +7,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MarketSchema } from './market.schema';
 import { EventModule } from 'src/event/event.module';
 import { EventSchema } from 'src/event/event.schema';
+import { EventService } from 'src/event/event.service';
+import { UserModule } from 'src/user/user.module';
+import { UserService } from 'src/user/user.service';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -17,8 +21,10 @@ import { EventSchema } from 'src/event/event.schema';
     ]),
     StorageModule,
     EventModule,
+    UserModule,
+    AuthModule,
   ],
-  providers: [MarketService],
+  providers: [MarketService, EventService, UserService],
   controllers: [MarketController],
 })
 export class MarketModule {}

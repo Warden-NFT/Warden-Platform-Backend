@@ -41,7 +41,7 @@ export class UserService {
     return await (model as Model<User>).find(filter).select(select);
   }
 
-  async findById(id: Types.ObjectId | string, select?: string): Promise<User> {
+  async findById(id: Types.ObjectId | string, select?: string): Promise<User | EventOrganizerUser | CustomerUser> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid Id');
     }
