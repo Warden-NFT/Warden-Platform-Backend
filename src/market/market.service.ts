@@ -4,11 +4,11 @@ import { ROLE } from 'common/roles';
 import mongoose, { Model } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { Event } from 'src/event/interfaces/event.interface';
-import { StorageService } from 'src/storage/storage.service';
+import { TicketService } from 'src/ticket/ticket.service';
 import { EventOrganizerUser } from 'src/user/user.interface';
 import { UserService } from 'src/user/user.service';
 import { throwBadRequestError } from 'src/utils/httpError';
-import { EventSearchDTO, MarketEveventDTO } from './dto/market.dto';
+import { EventSearchDTO, MarketEventDTO, MarketTicketDTO, TicketListingInfoDTO } from './dto/market.dto';
 import { Market } from './interface/market.interface';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class MarketService {
     @InjectModel('Market') private marketModel: Model<Market>,
     private eventService: EventService,
     private userService: UserService,
-    private storageService: StorageService,
+    private ticketService: TicketService,
   ) {}
 
   // Set the featured Events ID array
@@ -126,22 +126,74 @@ export class MarketService {
     }
   }
 
-  async getMarketEvents(organizerId: string): Promise<MarketEveventDTO> {
+  // Get market events (event organizer information and events)
+  async getMarketEvents(organizerId: string): Promise<MarketEventDTO> {
     try {
+      // Get event organizer info
       const _organizerInfo = await this.userService.findById(organizerId);
       const organizerInfo = _organizerInfo as EventOrganizerUser;
       if (organizerInfo.accountType !== ROLE.EVENT_ORGANIZER) {
         throw new NotFoundException('Event organizer with ID does not exist');
       }
+
+      // Get event info
       const events = await this.eventService.getEventFromEventOrganizer(organizerId);
+
+      // Get ticket previews for each event
+      const eventTicketPreviews = await Promise.all(
+        events.map(async (_event) => {
+          return await this.ticketService.getTicketPreviews(_event._id.toString());
+        }),
+      );
 
       const marketEvents = {
         organizerInfo,
         events,
+        eventTicketPreviews,
       };
       return marketEvents;
     } catch (error) {
       throwBadRequestError(error);
     }
+  }
+
+  // Get get market tickets (event organizer, event, tickets)
+  async getMarketTickets(eventId: string): Promise<MarketTicketDTO> {
+    try {
+      // Event Info
+      const event = await this.eventModel.findById(eventId);
+      // Event Organizer Info
+      const _organizerInfo = await this.userService.findById(event.organizerId);
+      const organizerInfo = _organizerInfo as EventOrganizerUser;
+      // Ticket set
+      const ticketSet = await this.ticketService.getTicketsOfEvent(eventId);
+
+      return {
+        organizerInfo,
+        event,
+        ticketSet,
+      };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
+  // Get ticket listing details
+  async getTicketListingDetails(eventId: string, ticketSetId: string, ticketId: string): Promise<TicketListingInfoDTO> {
+    // Event Info
+    const event = await this.eventService.getEvent(eventId);
+
+    // Event Organizer Info
+    const _organizerInfo = await this.userService.findById(event.organizerId);
+    const organizerInfo = _organizerInfo as EventOrganizerUser;
+
+    // Ticket Info
+    const ticket = await this.ticketService.getTicketByID(ticketSetId, ticketId);
+
+    return {
+      organizerInfo,
+      event,
+      ticket,
+    };
   }
 }

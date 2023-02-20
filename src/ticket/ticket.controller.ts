@@ -69,7 +69,7 @@ export class TicketController {
   @ApiOkResponse({ type: TicketDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicketOfEvent(@Query('eventId') eventId: string): Promise<TicketSet[]> {
+  async getTicketOfEvent(@Query('eventId') eventId: string): Promise<TicketSet> {
     return this.ticketService.getTicketsOfEvent(eventId);
   }
 

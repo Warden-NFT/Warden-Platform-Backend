@@ -1,8 +1,15 @@
-import { Body, Controller, Get, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
 import { AdminGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
 import { EventService } from 'src/event/event.service';
-import { EventSearchDTO, FeaturedEventIdsDTO, Market, MarketEveventDTO } from './dto/market.dto';
+import {
+  EventSearchDTO,
+  FeaturedEventIdsDTO,
+  Market,
+  MarketEventDTO,
+  MarketTicketDTO,
+  TicketListingInfoDTO,
+} from './dto/market.dto';
 import { MarketService } from './market.service';
 
 @Controller('market')
@@ -50,10 +57,31 @@ export class MarketController {
   // Market Event
 
   @Get('events')
-  @ApiOkResponse({ type: MarketEveventDTO })
-  @ApiBadRequestResponse({ description: 'Unable to get search for the market events' })
+  @ApiOkResponse({ type: MarketEventDTO })
+  @ApiBadRequestResponse({ description: 'Unable to search for the market events' })
   @UseGuards(JwtAuthGuard)
   async getMarketEvents(@Query('organizerId') organizerId: string) {
     return this.marketService.getMarketEvents(organizerId);
+  }
+
+  // Market Ticket
+
+  @Get('tickets')
+  @ApiOkResponse({ type: MarketTicketDTO })
+  @ApiBadRequestResponse({ description: 'Unable to search for the market tickets' })
+  async getMarketTickets(@Query('eventId') eventId: string) {
+    return this.marketService.getMarketTickets(eventId);
+  }
+
+  // Ticket Listing
+  @Get(':eventId/:ticketSetId/:ticketId')
+  @ApiOkResponse({ type: TicketListingInfoDTO })
+  @ApiBadRequestResponse({ description: 'Unable to find the ticket' })
+  async getTicketListing(
+    @Param('eventId') eventId: string,
+    @Param('ticketSetId') ticketSetId: string,
+    @Param('ticketId') ticketId: string,
+  ) {
+    return this.marketService.getTicketListingDetails(eventId, ticketSetId, ticketId);
   }
 }

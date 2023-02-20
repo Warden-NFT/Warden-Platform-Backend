@@ -5,7 +5,7 @@ import { StorageService } from 'src/storage/storage.service';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
 import { TicketDTO, TicketSetDTO, UpdateTicketSetImagesDTO, VIPTicketDTO } from './ticket.dto';
-import { Ticket, TicketSet } from './ticket.interface';
+import { Ticket, TicketSet, TicketTypeKeys } from './ticket.interface';
 
 @Injectable()
 export class TicketService {
@@ -52,14 +52,14 @@ export class TicketService {
       const ticketSet = await this.ticketSetModel.findById(ticketSetId);
       if (!ticketSet) throw new NotFoundException(`Ticket #${ticketSetId} not found`);
       let matchedTicket;
-      for (const key in ticketSet.tickets) {
-        const matchingTicket = ticketSet.tickets[key].find((ticket) => ticket._id === ticketId);
+      TicketTypeKeys.forEach((key) => {
+        const matchingTicket = ticketSet.tickets[key].find((ticket) => ticket._id.toString() === ticketId);
         if (matchingTicket) {
           matchedTicket = matchingTicket;
         }
-      }
+      });
       if (!matchedTicket) {
-        throw new NotFoundException(`Ticket #${ticketSet._id} not found`);
+        throw new NotFoundException(`Ticket #${ticketId} not found`);
       }
       return matchedTicket;
     } catch (error) {
@@ -74,10 +74,32 @@ export class TicketService {
   }
 
   // Get all tickets belonging to an event
-  async getTicketsOfEvent(eventId: string): Promise<TicketSet[]> {
+  async getTicketsOfEvent(eventId: string): Promise<TicketSet> {
     try {
-      const tickets = await this.ticketSetModel.find({ subjectOf: eventId });
+      const tickets = await this.ticketSetModel.findOne({ subjectOf: eventId });
       return tickets;
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  // Get all tickets belonging to an event
+  async getTicketPreviews(eventId: string): Promise<Ticket[]> {
+    try {
+      const ticketSet = await this.ticketSetModel.findOne({ subjectOf: eventId });
+      if (!ticketSet) return [];
+      const ticketPreviews = [
+        ...ticketSet.tickets.vipTickets,
+        ...ticketSet.tickets.generalTickets,
+        ...ticketSet.tickets.reservedSeatTickets,
+      ].slice(0, 3);
+      return ticketPreviews;
     } catch (error) {
       throw new HttpException(
         {

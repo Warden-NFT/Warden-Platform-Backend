@@ -1,10 +1,6 @@
 import mongoose from 'mongoose';
 
 export const TicketSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    required: false,
-  },
   dateIssued: {
     type: String,
     required: true,
