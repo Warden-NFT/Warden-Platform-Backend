@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AdminGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
 import { EventService } from 'src/event/event.service';
-import { FeaturedEventIdsDTO } from './dto/market.dto';
+import { EventSearchDTO, FeaturedEventIdsDTO } from './dto/market.dto';
 import { MarketService } from './market.service';
 
 @Controller('market')
@@ -28,5 +28,13 @@ export class MarketController {
   @UseGuards(JwtAuthGuard)
   async getLatestEvents(@Query('limit') limit: string, @Query('startTimeStamp') startTimeStamp: string) {
     return this.marketService.getLatestEvents(parseInt(limit) ?? 10, startTimeStamp);
+  }
+
+  // Event search
+
+  @Post('search')
+  @UseGuards(JwtAuthGuard)
+  async searchEvents(@Body() eventSearchDTO: EventSearchDTO) {
+    return this.marketService.searchEvents(eventSearchDTO);
   }
 }
