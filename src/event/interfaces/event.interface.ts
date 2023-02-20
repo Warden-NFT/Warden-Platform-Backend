@@ -44,6 +44,7 @@ export interface Event {
   ownerAddress: string;
   smartContractAddress: string;
   ticketSetId: string;
+  score?: number; // used for ranking search results
 }
 
 export interface TicketSupply {
