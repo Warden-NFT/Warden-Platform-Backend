@@ -11,6 +11,9 @@ import { EventService } from 'src/event/event.service';
 import { UserModule } from 'src/user/user.module';
 import { UserService } from 'src/user/user.service';
 import { AuthModule } from 'src/auth/auth.module';
+import { TicketModule } from 'src/ticket/ticket.module';
+import { TicketService } from 'src/ticket/ticket.service';
+import { TicketSetSchema } from 'src/ticket/ticket.schema';
 
 @Module({
   imports: [
@@ -18,13 +21,16 @@ import { AuthModule } from 'src/auth/auth.module';
     MongooseModule.forFeature([
       { name: 'Market', schema: MarketSchema, collection: 'market' },
       { name: 'Event', schema: EventSchema, collection: 'events' },
+      { name: 'Event', schema: EventSchema, collection: 'events' },
+      { name: 'TicketSet', schema: TicketSetSchema, collection: 'tickets' },
     ]),
     StorageModule,
     EventModule,
     UserModule,
     AuthModule,
+    TicketModule,
   ],
-  providers: [MarketService, EventService, UserService],
+  providers: [MarketService, EventService, UserService, TicketService],
   controllers: [MarketController],
 })
 export class MarketModule {}

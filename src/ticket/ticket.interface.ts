@@ -2,6 +2,8 @@ import { TicketsMetadata } from 'src/event/interfaces/event.interface';
 
 export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
 
+export const TicketTypeKeys = ['generalTickets', 'vipTickets', 'reservedSeatTickets'];
+
 export type Currency = 'ETH' | 'MATIC';
 
 export interface TicketSet {
