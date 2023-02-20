@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { ROLE } from 'common/roles';
 import mongoose, { Model } from 'mongoose';
+import { EventService } from 'src/event/event.service';
 import { Event } from 'src/event/interfaces/event.interface';
 import { StorageService } from 'src/storage/storage.service';
+import { EventOrganizerUser } from 'src/user/user.interface';
+import { UserService } from 'src/user/user.service';
 import { throwBadRequestError } from 'src/utils/httpError';
-import { EventSearchDTO } from './dto/market.dto';
+import { EventSearchDTO, MarketEveventDTO } from './dto/market.dto';
 import { Market } from './interface/market.interface';
 
 @Injectable()
@@ -12,11 +16,13 @@ export class MarketService {
   constructor(
     @InjectModel('Event') private eventModel: Model<Event>,
     @InjectModel('Market') private marketModel: Model<Market>,
+    private eventService: EventService,
+    private userService: UserService,
     private storageService: StorageService,
   ) {}
 
   // Set the featured Events ID array
-  async setFeaturedEvents(featuredEventIds) {
+  async setFeaturedEvents(featuredEventIds): Promise<Market> {
     try {
       const res = await this.marketModel.findOne();
       if (res) {
@@ -32,7 +38,7 @@ export class MarketService {
   }
 
   // Get the featured events detail
-  async getFeaturedEvents() {
+  async getFeaturedEvents(): Promise<Event[]> {
     try {
       const res = await this.marketModel.findOne();
       const featuredEventIds = res.featuredEvents;
@@ -43,12 +49,18 @@ export class MarketService {
       });
       return featuredEvents;
     } catch (error) {
-      throwBadRequestError(error);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_IMPLEMENTED,
+          message: error.message,
+        },
+        HttpStatus.NOT_IMPLEMENTED,
+      );
     }
   }
 
   // Get the n latest events
-  async getLatestEvents(limit: number, createdOnBefore?: string) {
+  async getLatestEvents(limit: number, createdOnBefore?: string): Promise<Event[]> {
     try {
       if (createdOnBefore) {
         const latestEvents = await this.eventModel
@@ -66,7 +78,7 @@ export class MarketService {
   }
 
   // Search events
-  async searchEvents(eventSearchDTO: EventSearchDTO) {
+  async searchEvents(eventSearchDTO: EventSearchDTO): Promise<Event[]> {
     const { searchTerm, startDate, endDate, location } = eventSearchDTO;
     try {
       // Create the search query
@@ -109,6 +121,25 @@ export class MarketService {
       events.sort((a, b) => b.score - a.score);
 
       return events;
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
+  async getMarketEvents(organizerId: string): Promise<MarketEveventDTO> {
+    try {
+      const _organizerInfo = await this.userService.findById(organizerId);
+      const organizerInfo = _organizerInfo as EventOrganizerUser;
+      if (organizerInfo.accountType !== ROLE.EVENT_ORGANIZER) {
+        throw new NotFoundException('Event organizer with ID does not exist');
+      }
+      const events = await this.eventService.getEventFromEventOrganizer(organizerId);
+
+      const marketEvents = {
+        organizerInfo,
+        events,
+      };
+      return marketEvents;
     } catch (error) {
       throwBadRequestError(error);
     }
