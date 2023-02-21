@@ -37,10 +37,6 @@ export class EventDTO {
   };
 
   @ApiProperty()
-  @IsNumber()
-  maximumAttendeeCapacity: number;
-
-  @ApiProperty()
   @IsString()
   organizerId: string;
 

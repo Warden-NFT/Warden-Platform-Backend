@@ -43,11 +43,22 @@ export class EventService {
     }
   }
 
-  async getEventFromEventOrganizer(eventOrgagnizerId: string): Promise<Event[]> {
+  /**
+   *
+   * @param {string} eventOrganizerId: event organizer ID
+   * @param {boolean} unlisted: true when querying for events without a linked ticket only
+   * @returns
+   */
+  async getEventFromEventOrganizer(eventOrganizerId: string, unlisted: boolean): Promise<Event[]> {
     try {
-      const events: Event[] = await this.eventModel.find({ organizerId: eventOrgagnizerId }).exec();
+      let events: Event[] = await this.eventModel.find({ organizerId: eventOrganizerId }).exec();
       if (!events) {
-        throw new NotFoundException(`Events from #${eventOrgagnizerId} not found`);
+        throw new NotFoundException(`Events from #${eventOrganizerId} not found`);
+      }
+      if (unlisted) {
+        events = events.map((event) => {
+          if (!event.ticketSetId) return event;
+        });
       }
       return events;
     } catch (error) {

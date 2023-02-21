@@ -1,6 +1,15 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { EventService } from 'src/event/event.service';
 import { StorageService } from 'src/storage/storage.service';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
@@ -9,15 +18,32 @@ import { Ticket, TicketSet, TicketTypeKeys } from './ticket.interface';
 
 @Injectable()
 export class TicketService {
-  constructor(private storageService: StorageService) {}
+  constructor(private storageService: StorageService, private eventService: EventService) {}
   @InjectModel('TicketSet') private ticketSetModel: Model<TicketSet>;
 
   // Create a record of tickets generated
-  async createTicketSet(ticketSet: TicketSetDTO): Promise<TicketSet> {
+  async createTicketSet(ticketSet: TicketSetDTO, eventOrganizerId: string): Promise<TicketSet> {
     try {
       await new this.ticketSetModel(ticketSet).validate();
-      const newTicket = await new this.ticketSetModel(ticketSet);
-      return newTicket.save();
+      const newTicketSet = await new this.ticketSetModel(ticketSet);
+      const event = await this.eventService.getEvent(newTicketSet.subjectOf);
+      if (!event) throw new BadRequestException('Invalid event ID');
+      if (event.ticketSetId) throw new ConflictException('This event already has a ticket set associated.');
+
+      // Save the ticket
+      const savedTicketSet = await newTicketSet.save();
+
+      // Save the event
+      event.ticketSetId = savedTicketSet._id.toString();
+      const updateEventPayload = {
+        ...event,
+        eventId: savedTicketSet.subjectOf,
+        eventOrganizerId,
+      };
+      await this.eventService.updateEvent(updateEventPayload, eventOrganizerId);
+
+      // Return the ticket set created
+      return savedTicketSet;
     } catch (error) {
       throw new HttpException(
         {

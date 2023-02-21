@@ -14,6 +14,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -43,10 +44,11 @@ export class TicketController {
 
   @Post('/createEventTickets')
   @ApiCreatedResponse({ type: InsertManyResponseDTO })
+  @ApiConflictResponse({ description: 'This event already has a ticket set associated.' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
-  async createTicketSet(@Body() tickets: TicketSetDTO) {
-    return this.ticketService.createTicketSet(tickets);
+  async createTicketSet(@Body() tickets: TicketSetDTO, @Req() req) {
+    return this.ticketService.createTicketSet(tickets, req.user.uid);
   }
 
   @Get('/getTicketSet')
