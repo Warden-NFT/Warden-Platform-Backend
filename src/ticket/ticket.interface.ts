@@ -6,7 +6,7 @@ export const TicketTypeKeys = ['generalTickets', 'vipTickets', 'reservedSeatTick
 
 export type Currency = 'ETH' | 'MATIC';
 
-export interface TicketSet {
+export interface TicketCollection {
   _id?: string;
   tickets: {
     generalTickets: Ticket[];

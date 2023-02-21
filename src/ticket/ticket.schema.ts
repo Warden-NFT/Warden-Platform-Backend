@@ -47,7 +47,7 @@ export const TicketSchema = new mongoose.Schema({
   },
 });
 
-export const TicketSetSchema = new mongoose.Schema({
+export const TicketCollectionSchema = new mongoose.Schema({
   tickets: {
     generalTickets: [TicketSchema],
     vipTickets: [TicketSchema],

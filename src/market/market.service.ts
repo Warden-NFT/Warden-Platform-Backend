@@ -166,12 +166,12 @@ export class MarketService {
       const _organizerInfo = await this.userService.findById(event.organizerId);
       const organizerInfo = _organizerInfo as EventOrganizerUser;
       // Ticket set
-      const ticketSet = await this.ticketService.getTicketsOfEvent(eventId);
+      const ticketCollection = await this.ticketService.getTicketsOfEvent(eventId);
 
       return {
         organizerInfo,
         event,
-        ticketSet,
+        ticketCollection,
       };
     } catch (error) {
       throwBadRequestError(error);
@@ -179,7 +179,11 @@ export class MarketService {
   }
 
   // Get ticket listing details
-  async getTicketListingDetails(eventId: string, ticketSetId: string, ticketId: string): Promise<TicketListingInfoDTO> {
+  async getTicketListingDetails(
+    eventId: string,
+    ticketCollectionId: string,
+    ticketId: string,
+  ): Promise<TicketListingInfoDTO> {
     // Event Info
     const event = await this.eventService.getEvent(eventId);
 
@@ -188,7 +192,7 @@ export class MarketService {
     const organizerInfo = _organizerInfo as EventOrganizerUser;
 
     // Ticket Info
-    const ticket = await this.ticketService.getTicketByID(ticketSetId, ticketId);
+    const ticket = await this.ticketService.getTicketByID(ticketCollectionId, ticketId);
 
     return {
       organizerInfo,

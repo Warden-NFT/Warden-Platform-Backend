@@ -43,7 +43,7 @@ export interface Event {
   ticketType: TicketType;
   ownerAddress: string;
   smartContractAddress: string;
-  ticketSetId: string;
+  ticketCollectionId: string;
   score?: number; // used for ranking search results
 }
 

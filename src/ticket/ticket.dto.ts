@@ -121,7 +121,7 @@ export class TicketTypesDTO {
 }
 
 @Expose()
-export class TicketSetDTO {
+export class TicketCollectionDTO {
   @ApiProperty()
   @IsString()
   _id?: string;
@@ -193,7 +193,7 @@ export class TicketSetDTO {
 export class updateTicketCollectionImagesDTO extends MultipleMediaUploadPayloadDTO {
   @ApiProperty()
   @IsString()
-  ticketSetId?: string;
+  ticketCollectionId?: string;
 }
 
 export class UpdateTicketDTO {
@@ -202,5 +202,5 @@ export class UpdateTicketDTO {
 
   @ApiProperty()
   @IsString()
-  ticketSetId: string;
+  ticketCollectionId: string;
 }

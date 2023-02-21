@@ -93,7 +93,7 @@ export class EventDTO {
 
   @ApiProperty()
   @IsString()
-  ticketSetId: string;
+  ticketCollectionId: string;
 }
 
 @Expose()

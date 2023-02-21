@@ -13,37 +13,40 @@ import { EventService } from 'src/event/event.service';
 import { StorageService } from 'src/storage/storage.service';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, TicketSetDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './ticket.dto';
-import { Ticket, TicketSet, TicketTypeKeys } from './ticket.interface';
+import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './ticket.dto';
+import { Ticket, TicketCollection, TicketTypeKeys } from './ticket.interface';
 
 @Injectable()
 export class TicketService {
   constructor(private storageService: StorageService, private eventService: EventService) {}
-  @InjectModel('TicketSet') private ticketSetModel: Model<TicketSet>;
+  @InjectModel('TicketCollection') private ticketCollectionModel: Model<TicketCollection>;
 
   // Create a record of tickets generated
-  async createTicketCollection(ticketSet: TicketSetDTO, eventOrganizerId: string): Promise<TicketSet> {
+  async createTicketCollection(
+    ticketCollection: TicketCollectionDTO,
+    eventOrganizerId: string,
+  ): Promise<TicketCollection> {
     try {
-      await new this.ticketSetModel(ticketSet).validate();
-      const newTicketSet = await new this.ticketSetModel(ticketSet);
-      const event = await this.eventService.getEvent(newTicketSet.subjectOf);
+      await new this.ticketCollectionModel(ticketCollection).validate();
+      const newTicketCollection = await new this.ticketCollectionModel(ticketCollection);
+      const event = await this.eventService.getEvent(newTicketCollection.subjectOf);
       if (!event) throw new BadRequestException('Invalid event ID');
-      if (event.ticketSetId) throw new ConflictException('This event already has a ticket set associated.');
+      if (event.ticketCollectionId) throw new ConflictException('This event already has a ticket set associated.');
 
       // Save the ticket
-      const savedTicketSet = await newTicketSet.save();
+      const savedTicketCollection = await newTicketCollection.save();
 
       // Save the event
-      event.ticketSetId = savedTicketSet._id.toString();
+      event.ticketCollectionId = savedTicketCollection._id.toString();
       const updateEventPayload = {
         ...event,
-        eventId: savedTicketSet.subjectOf,
+        eventId: savedTicketCollection.subjectOf,
         eventOrganizerId,
       };
       await this.eventService.updateEvent(updateEventPayload, eventOrganizerId);
 
       // Return the ticket set created
-      return savedTicketSet;
+      return savedTicketCollection;
     } catch (error) {
       throw new HttpException(
         {
@@ -56,11 +59,11 @@ export class TicketService {
   }
 
   // Get the ticket set information by ID
-  async getTicketCollectionByID(ticketSetId: string): Promise<TicketSet> {
+  async getTicketCollectionByID(ticketCollectionId: string): Promise<TicketCollection> {
     try {
-      const ticketSet = await this.ticketSetModel.findById(ticketSetId);
-      if (!ticketSet) throw new NotFoundException(`Ticket set #${ticketSetId} not found`);
-      return ticketSet;
+      const ticketCollection = await this.ticketCollectionModel.findById(ticketCollectionId);
+      if (!ticketCollection) throw new NotFoundException(`Ticket set #${ticketCollectionId} not found`);
+      return ticketCollection;
     } catch (error) {
       throw new HttpException(
         {
@@ -73,13 +76,13 @@ export class TicketService {
   }
 
   // Get the ticket information by ID
-  async getTicketByID(ticketSetId: string, ticketId: string): Promise<Ticket> {
+  async getTicketByID(ticketCollectionId: string, ticketId: string): Promise<Ticket> {
     try {
-      const ticketSet = await this.ticketSetModel.findById(ticketSetId);
-      if (!ticketSet) throw new NotFoundException(`Ticket #${ticketSetId} not found`);
+      const ticketCollection = await this.ticketCollectionModel.findById(ticketCollectionId);
+      if (!ticketCollection) throw new NotFoundException(`Ticket #${ticketCollectionId} not found`);
       let matchedTicket;
       TicketTypeKeys.forEach((key) => {
-        const matchingTicket = ticketSet.tickets[key].find((ticket) => ticket._id.toString() === ticketId);
+        const matchingTicket = ticketCollection.tickets[key].find((ticket) => ticket._id.toString() === ticketId);
         if (matchingTicket) {
           matchedTicket = matchingTicket;
         }
@@ -100,9 +103,9 @@ export class TicketService {
   }
 
   // Get all tickets belonging to an event
-  async getTicketsOfEvent(eventId: string): Promise<TicketSet> {
+  async getTicketsOfEvent(eventId: string): Promise<TicketCollection> {
     try {
-      const tickets = await this.ticketSetModel.findOne({ subjectOf: eventId });
+      const tickets = await this.ticketCollectionModel.findOne({ subjectOf: eventId });
       return tickets;
     } catch (error) {
       throw new HttpException(
@@ -118,12 +121,12 @@ export class TicketService {
   // Get all tickets belonging to an event
   async getTicketPreviews(eventId: string): Promise<Ticket[]> {
     try {
-      const ticketSet = await this.ticketSetModel.findOne({ subjectOf: eventId });
-      if (!ticketSet) return [];
+      const ticketCollection = await this.ticketCollectionModel.findOne({ subjectOf: eventId });
+      if (!ticketCollection) return [];
       const ticketPreviews = [
-        ...ticketSet.tickets.vipTickets,
-        ...ticketSet.tickets.generalTickets,
-        ...ticketSet.tickets.reservedSeatTickets,
+        ...ticketCollection.tickets.vipTickets,
+        ...ticketCollection.tickets.generalTickets,
+        ...ticketCollection.tickets.reservedSeatTickets,
       ].slice(0, 3);
       return ticketPreviews;
     } catch (error) {
@@ -149,16 +152,18 @@ export class TicketService {
   // }
 
   // Update ticket set details
-  async updateTicketCollection(ticketSet: TicketSetDTO, ownerId: string): Promise<TicketSet> {
+  async updateTicketCollection(ticketCollection: TicketCollectionDTO, ownerId: string): Promise<TicketCollection> {
     try {
-      const ticketSetToBeUpdated = await this.ticketSetModel.findById(ticketSet._id);
-      if (!ticketSetToBeUpdated) {
-        throw new NotFoundException(`Ticket #${ticketSet._id} not found`);
+      const ticketCollectionToBeUpdated = await this.ticketCollectionModel.findById(ticketCollection._id);
+      if (!ticketCollectionToBeUpdated) {
+        throw new NotFoundException(`Ticket #${ticketCollection._id} not found`);
       }
-      if (ticketSetToBeUpdated.ownerId.toString() !== ownerId) {
+      if (ticketCollectionToBeUpdated.ownerId.toString() !== ownerId) {
         throw new UnauthorizedException(`You do not have the permission to edit this ticket set`);
       }
-      const a = await this.ticketSetModel.findByIdAndUpdate(ticketSet._id, ticketSet, { new: true });
+      const a = await this.ticketCollectionModel.findByIdAndUpdate(ticketCollection._id, ticketCollection, {
+        new: true,
+      });
       return a;
     } catch (error) {
       throw new HttpException(
@@ -177,13 +182,13 @@ export class TicketService {
     mediaUploadPayload: updateTicketCollectionImagesDTO,
     ownerId: string,
   ) {
-    const { folder, metadata, ticketSetId } = mediaUploadPayload;
+    const { folder, metadata, ticketCollectionId } = mediaUploadPayload;
     try {
-      const ticketSetToBeUpdated = await this.ticketSetModel.findById(ticketSetId);
-      if (ticketSetToBeUpdated && ticketSetToBeUpdated.ownerId.toString() !== ownerId) {
+      const ticketCollectionToBeUpdated = await this.ticketCollectionModel.findById(ticketCollectionId);
+      if (ticketCollectionToBeUpdated && ticketCollectionToBeUpdated.ownerId.toString() !== ownerId) {
         throw new UnauthorizedException(`You do not have the permission to edit this ticket set`);
       }
-      if (!ticketSetToBeUpdated) {
+      if (!ticketCollectionToBeUpdated) {
         const filesData = files.map((file) => {
           return {
             path: `media/${folder}/${file.originalname}`,
@@ -209,33 +214,36 @@ export class TicketService {
   // Update ticket details
   async updateTicket(
     ticket: TicketDTO | VIPTicketDTO,
-    ticketSetId: string,
+    ticketCollectionId: string,
     ownerId: string,
   ): Promise<TicketDTO | VIPTicketDTO> {
     try {
-      const ticketToBeUpdated = await this.ticketSetModel.findById(ticketSetId);
+      const ticketToBeUpdated = await this.ticketCollectionModel.findById(ticketCollectionId);
       if (!ticketToBeUpdated) {
-        throw new NotFoundException(`Ticket set #${ticketSetId} not found`);
+        throw new NotFoundException(`Ticket set #${ticketCollectionId} not found`);
       }
       if (ticketToBeUpdated.ownerId.toString() !== ownerId) {
         throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
       }
-      const ticketSetToBeUpdated = await this.ticketSetModel.findById(ticketSetId);
-      const ticketTypes = Object.keys(ticketSetToBeUpdated.tickets);
+      const ticketCollectionToBeUpdated = await this.ticketCollectionModel.findById(ticketCollectionId);
+      const ticketTypes = Object.keys(ticketCollectionToBeUpdated.tickets);
       let _key = '';
       let _index = 0;
       ticketTypes.forEach((key) => {
-        ticketSetToBeUpdated.tickets[key].forEach((item, index) => {
+        ticketCollectionToBeUpdated.tickets[key].forEach((item, index) => {
           if (item._id === ticket._id) {
-            ticketSetToBeUpdated.tickets[key][index] = { ...ticketSetToBeUpdated.tickets[key][index], ...ticket };
+            ticketCollectionToBeUpdated.tickets[key][index] = {
+              ...ticketCollectionToBeUpdated.tickets[key][index],
+              ...ticket,
+            };
             _key = key;
             _index = index;
           }
         });
       });
-      const savedTicketSet = await ticketSetToBeUpdated.save();
-      if (savedTicketSet) {
-        return savedTicketSet.tickets[_key][_index];
+      const savedTicketCollection = await ticketCollectionToBeUpdated.save();
+      if (savedTicketCollection) {
+        return savedTicketCollection.tickets[_key][_index];
       }
     } catch (error) {
       throwBadRequestError(error);
@@ -243,16 +251,16 @@ export class TicketService {
   }
 
   // Delete an eventset with the specified ID
-  async deleteTicket(ticketSetId: string, ownerId: string): Promise<DeleteResponseDTO> {
-    const ticketSetToBeDeleted = await this.ticketSetModel.findById(ticketSetId);
-    if (!ticketSetToBeDeleted) {
-      throw new NotFoundException(`Ticket set #${ticketSetId} not found`);
+  async deleteTicket(ticketCollectionId: string, ownerId: string): Promise<DeleteResponseDTO> {
+    const ticketCollectionToBeDeleted = await this.ticketCollectionModel.findById(ticketCollectionId);
+    if (!ticketCollectionToBeDeleted) {
+      throw new NotFoundException(`Ticket set #${ticketCollectionId} not found`);
     }
-    if (ticketSetToBeDeleted.ownerId.toString() !== ownerId) {
+    if (ticketCollectionToBeDeleted.ownerId.toString() !== ownerId) {
       throw new UnauthorizedException(`You do not have the permission to delete this ticket set`);
     }
     try {
-      return await this.ticketSetModel.findByIdAndDelete(ticketSetId);
+      return await this.ticketCollectionModel.findByIdAndDelete(ticketCollectionId);
     } catch (error) {
       throwBadRequestError(error);
     }
