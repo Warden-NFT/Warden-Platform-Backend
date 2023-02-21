@@ -137,7 +137,7 @@ export class MarketService {
       }
 
       // Get event info
-      const events = await this.eventService.getEventFromEventOrganizer(organizerId);
+      const events = await this.eventService.getEventFromEventOrganizer(organizerId, false);
 
       // Get ticket previews for each event
       const eventTicketPreviews = await Promise.all(
