@@ -190,7 +190,7 @@ export class TicketSetDTO {
   ticketQuota: TicketQuota;
 }
 
-export class UpdateTicketSetImagesDTO extends MultipleMediaUploadPayloadDTO {
+export class updateTicketCollectionImagesDTO extends MultipleMediaUploadPayloadDTO {
   @ApiProperty()
   @IsString()
   ticketSetId?: string;
