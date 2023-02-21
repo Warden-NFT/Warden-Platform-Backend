@@ -13,7 +13,7 @@ import { UserService } from 'src/user/user.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { TicketModule } from 'src/ticket/ticket.module';
 import { TicketService } from 'src/ticket/ticket.service';
-import { TicketSetSchema } from 'src/ticket/ticket.schema';
+import { TicketCollectionSchema } from 'src/ticket/ticket.schema';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { TicketSetSchema } from 'src/ticket/ticket.schema';
       { name: 'Market', schema: MarketSchema, collection: 'market' },
       { name: 'Event', schema: EventSchema, collection: 'events' },
       { name: 'Event', schema: EventSchema, collection: 'events' },
-      { name: 'TicketSet', schema: TicketSetSchema, collection: 'tickets' },
+      { name: 'TicketCollection', schema: TicketCollectionSchema, collection: 'tickets' },
     ]),
     StorageModule,
     EventModule,

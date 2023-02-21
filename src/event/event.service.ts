@@ -57,7 +57,7 @@ export class EventService {
       }
       if (unlisted) {
         events = events.map((event) => {
-          if (!event.ticketSetId) return event;
+          if (!event.ticketCollectionId) return event;
         });
       }
       return events;

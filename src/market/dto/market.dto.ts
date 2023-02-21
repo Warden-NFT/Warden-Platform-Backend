@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 import { Event } from 'src/event/interfaces/event.interface';
-import { Ticket, TicketSet } from 'src/ticket/ticket.interface';
+import { Ticket, TicketCollection } from 'src/ticket/ticket.interface';
 import { EventOrganizerUser } from 'src/user/user.interface';
 
 @Expose()
@@ -32,7 +32,7 @@ export class MarketEventDTO {
 export class MarketTicketDTO {
   organizerInfo: EventOrganizerUser;
   event: Event;
-  ticketSet: TicketSet;
+  ticketCollection: TicketCollection;
 }
 
 @Expose()

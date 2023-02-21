@@ -28,13 +28,13 @@ import { StorageService } from 'src/storage/storage.service';
 import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from 'src/utils/httpResponse.dto';
 import {
   TicketDTO,
-  TicketSetDTO,
+  TicketCollectionDTO,
   TicketsMetadataDTO,
   UpdateTicketDTO,
   updateTicketCollectionImagesDTO,
   VIPTicketDTO,
 } from './ticket.dto';
-import { Ticket, TicketSet } from './ticket.interface';
+import { Ticket, TicketCollection } from './ticket.interface';
 import { TicketService } from './ticket.service';
 
 @ApiTags('Ticket')
@@ -47,15 +47,15 @@ export class TicketController {
   @ApiConflictResponse({ description: 'This event already has a ticket set associated.' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(EventOrganizerGuard)
-  async createTicketCollection(@Body() tickets: TicketSetDTO, @Req() req) {
+  async createTicketCollection(@Body() tickets: TicketCollectionDTO, @Req() req) {
     return this.ticketService.createTicketCollection(tickets, req.user.uid);
   }
 
   @Get()
-  @ApiOkResponse({ type: TicketSetDTO })
+  @ApiOkResponse({ type: TicketCollectionDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicketCollection(@Query('collectionId') collectionId: string): Promise<TicketSet> {
+  async getTicketCollection(@Query('collectionId') collectionId: string): Promise<TicketCollection> {
     return this.ticketService.getTicketCollectionByID(collectionId);
   }
 
@@ -71,7 +71,7 @@ export class TicketController {
   @ApiOkResponse({ type: TicketDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicketOfEvent(@Query('eventId') eventId: string): Promise<TicketSet> {
+  async getTicketOfEvent(@Query('eventId') eventId: string): Promise<TicketCollection> {
     return this.ticketService.getTicketsOfEvent(eventId);
   }
 
@@ -99,7 +99,7 @@ export class TicketController {
   @ApiUnauthorizedResponse({ description: 'You do not have the permission to edit this ticket' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async updateTicketCollection(@Body() dto: TicketSetDTO, @Req() req) {
+  async updateTicketCollection(@Body() dto: TicketCollectionDTO, @Req() req) {
     return this.ticketService.updateTicketCollection(dto, req.user.uid);
   }
 
@@ -108,7 +108,7 @@ export class TicketController {
   @ApiBadRequestResponse({ description: 'Invalid file or file size is too large' })
   @UseGuards(EventOrganizerGuard)
   @UseInterceptors(FilesInterceptor('files'))
-  async saveTicketSetImages(
+  async saveTicketCollectionImages(
     @UploadedFiles() files: Express.Multer.File[],
     @Body() dto: updateTicketCollectionImagesDTO,
     @Req() req,
@@ -123,7 +123,7 @@ export class TicketController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
   async updateTicket(@Body() updateTicketDTO: UpdateTicketDTO, @Req() req) {
-    return this.ticketService.updateTicket(updateTicketDTO.ticket, updateTicketDTO.ticketSetId, req.user.uid);
+    return this.ticketService.updateTicket(updateTicketDTO.ticket, updateTicketDTO.ticketCollectionId, req.user.uid);
   }
 
   @Delete('/collection')

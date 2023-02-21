@@ -97,7 +97,7 @@ export const EventSchema = new mongoose.Schema({
     required: false,
   },
   // MongoDB object ID of the ticket set
-  ticketSetId: {
+  ticketCollectionId: {
     type: String,
     required: false,
   },

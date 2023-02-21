@@ -74,14 +74,14 @@ export class MarketController {
   }
 
   // Ticket Listing
-  @Get(':eventId/:ticketSetId/:ticketId')
+  @Get(':eventId/:ticketCollectionId/:ticketId')
   @ApiOkResponse({ type: TicketListingInfoDTO })
   @ApiBadRequestResponse({ description: 'Unable to find the ticket' })
   async getTicketListing(
     @Param('eventId') eventId: string,
-    @Param('ticketSetId') ticketSetId: string,
+    @Param('ticketCollectionId') ticketCollectionId: string,
     @Param('ticketId') ticketId: string,
   ) {
-    return this.marketService.getTicketListingDetails(eventId, ticketSetId, ticketId);
+    return this.marketService.getTicketListingDetails(eventId, ticketCollectionId, ticketId);
   }
 }
