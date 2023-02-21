@@ -6,11 +6,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from 'src/user/user.module';
 import { CustomerGuard, EventOrganizerGuard, JwtAuthGuard } from './jwt.guard';
 import { UserService } from 'src/user/user.service';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
   imports: [
     ConfigModule,
     forwardRef(() => UserModule),
+    StorageModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -96,7 +96,6 @@ export class EventService {
   async uploadEventImage(eventOrganizerId: string, eventId: string, image: Express.Multer.File) {
     try {
       const event: Event = await this.eventModel.findById(eventId);
-      console.log({ event });
       const isEventOwner = event.organizerId === eventOrganizerId;
       if (!isEventOwner) throw new UnauthorizedException('You are not the event owner');
       // If the user uploaded the event cover image, save it to GCS

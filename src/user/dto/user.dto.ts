@@ -35,6 +35,9 @@ export class CreateCustomerUserDTO {
   @ApiProperty()
   @IsString()
   verificationStatus: Verification;
+
+  @ApiProperty()
+  profileImage: File | string;
 }
 
 @Expose()
@@ -63,6 +66,9 @@ export class CreateEventOrganizerUserDTO {
   @ApiProperty()
   @IsString()
   verificationStatus: Verification;
+
+  @ApiProperty()
+  profileImage: File | string;
 }
 
 @Expose()
