@@ -5,15 +5,17 @@ import { AuthModule } from 'src/auth/auth.module';
 import { getModelToken, MongooseModule } from '@nestjs/mongoose';
 import { CustomerSchema, EventOrganizerSchema, UserSchema } from './user.schema';
 import { ConfigModule } from '@nestjs/config';
+import { StorageModule } from 'src/storage/storage.module';
+import { StorageService } from 'src/storage/storage.service';
 
 const customerProviderFactory = {
   provide: getModelToken('Customer'),
-  useFactory: (userModel) => userModel.discriminator('Customer', CustomerSchema),
+  useFactory: (userModel) => userModel.discriminator('CUSTOMER', CustomerSchema),
   inject: [getModelToken('User')],
 };
 const eventOrganizerProviderFactory = {
   provide: getModelToken('EventOrganizer'),
-  useFactory: (userModel) => userModel.discriminator('EventOrganizer', EventOrganizerSchema),
+  useFactory: (userModel) => userModel.discriminator('EVENT_ORGANIZER', EventOrganizerSchema),
   inject: [getModelToken('User')],
 };
 @Global()
@@ -22,9 +24,10 @@ const eventOrganizerProviderFactory = {
     ConfigModule,
     forwardRef(() => AuthModule),
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema, collection: 'users' }]),
+    StorageModule,
   ],
   controllers: [UserController],
-  providers: [customerProviderFactory, eventOrganizerProviderFactory, UserService],
+  providers: [customerProviderFactory, eventOrganizerProviderFactory, UserService, StorageService],
   exports: [
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema, collection: 'users' }]),
     customerProviderFactory,
