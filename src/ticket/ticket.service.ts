@@ -13,7 +13,7 @@ import { EventService } from 'src/event/event.service';
 import { StorageService } from 'src/storage/storage.service';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, TicketSetDTO, UpdateTicketSetImagesDTO, VIPTicketDTO } from './ticket.dto';
+import { TicketDTO, TicketSetDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './ticket.dto';
 import { Ticket, TicketSet, TicketTypeKeys } from './ticket.interface';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class TicketService {
   @InjectModel('TicketSet') private ticketSetModel: Model<TicketSet>;
 
   // Create a record of tickets generated
-  async createTicketSet(ticketSet: TicketSetDTO, eventOrganizerId: string): Promise<TicketSet> {
+  async createTicketCollection(ticketSet: TicketSetDTO, eventOrganizerId: string): Promise<TicketSet> {
     try {
       await new this.ticketSetModel(ticketSet).validate();
       const newTicketSet = await new this.ticketSetModel(ticketSet);
@@ -56,7 +56,7 @@ export class TicketService {
   }
 
   // Get the ticket set information by ID
-  async getTicketSetByID(ticketSetId: string): Promise<TicketSet> {
+  async getTicketCollectionByID(ticketSetId: string): Promise<TicketSet> {
     try {
       const ticketSet = await this.ticketSetModel.findById(ticketSetId);
       if (!ticketSet) throw new NotFoundException(`Ticket set #${ticketSetId} not found`);
@@ -149,7 +149,7 @@ export class TicketService {
   // }
 
   // Update ticket set details
-  async updateTicketSet(ticketSet: TicketSetDTO, ownerId: string): Promise<TicketSet> {
+  async updateTicketCollection(ticketSet: TicketSetDTO, ownerId: string): Promise<TicketSet> {
     try {
       const ticketSetToBeUpdated = await this.ticketSetModel.findById(ticketSet._id);
       if (!ticketSetToBeUpdated) {
@@ -172,9 +172,9 @@ export class TicketService {
   }
 
   // Update ticket set images
-  async updateTicketSetImages(
+  async updateTicketCollectionImages(
     files: Express.Multer.File[],
-    mediaUploadPayload: UpdateTicketSetImagesDTO,
+    mediaUploadPayload: updateTicketCollectionImagesDTO,
     ownerId: string,
   ) {
     const { folder, metadata, ticketSetId } = mediaUploadPayload;
