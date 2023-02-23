@@ -37,14 +37,6 @@ export const TicketSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  isResale: {
-    type: Boolean,
-    required: true,
-  },
-  isSold: {
-    type: Boolean,
-    required: true,
-  },
 });
 
 export const TicketCollectionSchema = new mongoose.Schema({
