@@ -10,6 +10,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EventService } from 'src/event/event.service';
+import { MarketEventTicketPreviewsDTO } from 'src/market/dto/market.dto';
 import { StorageService } from 'src/storage/storage.service';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
@@ -119,16 +120,15 @@ export class TicketService {
   }
 
   // Get all tickets belonging to an event
-  async getTicketPreviews(eventId: string): Promise<Ticket[]> {
+  async getTicketPreviews(eventId: string): Promise<MarketEventTicketPreviewsDTO> {
     try {
-      const ticketCollection = await this.ticketCollectionModel.findOne({ subjectOf: eventId });
-      if (!ticketCollection) return [];
-      const ticketPreviews = [
-        ...ticketCollection.tickets.vipTickets,
-        ...ticketCollection.tickets.generalTickets,
-        ...ticketCollection.tickets.reservedSeatTickets,
-      ].slice(0, 3);
-      return ticketPreviews;
+      const ticketCollection = await this.ticketCollectionModel.findOne({ subjectOf: eventId }).sort('desc');
+      const ticketPreviews = {
+        vipTickets: ticketCollection.tickets.vipTickets.slice(0, 1),
+        generalTickets: ticketCollection.tickets.generalTickets.slice(0, 1),
+        reservedSeatTickets: ticketCollection.tickets.reservedSeatTickets.slice(0, 1),
+      };
+      return { tickets: ticketPreviews, ticketPrice: ticketCollection.ticketPrice };
     } catch (error) {
       throw new HttpException(
         {

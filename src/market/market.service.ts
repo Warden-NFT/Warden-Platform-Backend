@@ -65,11 +65,11 @@ export class MarketService {
       if (createdOnBefore) {
         const latestEvents = await this.eventModel
           .find({ _id: { $gt: new mongoose.Types.ObjectId(createdOnBefore) } })
-          .sort({ _id: 'asc' })
+          .sort({ _id: 'desc' })
           .limit(limit);
         return latestEvents;
       } else {
-        const latestEvents = await this.eventModel.find().sort({ _id: 'asc' }).limit(limit);
+        const latestEvents = await this.eventModel.find().sort({ _id: 'desc' }).limit(limit);
         return latestEvents;
       }
     } catch (error) {

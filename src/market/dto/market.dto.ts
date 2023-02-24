@@ -1,5 +1,6 @@
 import { Expose } from 'class-transformer';
 import { Event } from 'src/event/interfaces/event.interface';
+import { TicketPriceDTO } from 'src/ticket/ticket.dto';
 import { Ticket, TicketCollection } from 'src/ticket/ticket.interface';
 import { EventOrganizerUser } from 'src/user/user.interface';
 
@@ -25,7 +26,13 @@ export class Market {
 export class MarketEventDTO {
   organizerInfo: EventOrganizerUser;
   events: Event[];
-  eventTicketPreviews: Ticket[][];
+  eventTicketPreviews: MarketEventTicketPreviewsDTO[];
+}
+
+@Expose()
+export class MarketEventTicketPreviewsDTO {
+  tickets: { generalTickets: Ticket[]; vipTickets: Ticket[]; reservedSeatTickets: Ticket[] };
+  ticketPrice: TicketPriceDTO;
 }
 
 @Expose()

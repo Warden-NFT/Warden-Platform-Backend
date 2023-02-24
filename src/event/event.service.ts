@@ -51,7 +51,7 @@ export class EventService {
    */
   async getEventFromEventOrganizer(eventOrganizerId: string, unlisted: boolean): Promise<Event[]> {
     try {
-      let events: Event[] = await this.eventModel.find({ organizerId: eventOrganizerId }).exec();
+      let events: Event[] = await this.eventModel.find({ organizerId: eventOrganizerId }).sort({ _id: 'desc' }).exec();
       if (!events) {
         throw new NotFoundException(`Events from #${eventOrganizerId} not found`);
       }

@@ -50,6 +50,7 @@ export interface Ticket {
   ticketMetadata: TicketsMetadata[];
   ownerAddress: string;
   ownerHistory: string[];
+  ticketType?: TicketType;
 }
 
 export interface VIPTicket extends Ticket {
