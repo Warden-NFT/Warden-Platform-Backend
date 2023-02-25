@@ -34,8 +34,8 @@ import {
   UpdateTicketDTO,
   updateTicketCollectionImagesDTO,
   VIPTicketDTO,
-} from './ticket.dto';
-import { Ticket, TicketCollection } from './ticket.interface';
+} from './dto/ticket.dto';
+import { Ticket, TicketCollection } from './interface/ticket.interface';
 import { TicketService } from './ticket.service';
 
 @ApiTags('Ticket')

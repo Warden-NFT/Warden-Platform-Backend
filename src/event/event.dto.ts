@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsDateString, IsNumber, IsString } from 'class-validator';
-import { TicketType } from 'src/ticket/ticket.interface';
-import { EventStatusType, TicketsMetadata } from './interfaces/event.interface';
+import { TicketType } from 'src/ticket/interface/ticket.interface';
+import { EventStatusType } from './interfaces/event.interface';
 import { PlaceType } from './interfaces/location.interface';
 
 @Expose()

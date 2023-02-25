@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsBoolean, IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
 import { MultipleMediaUploadPayloadDTO } from 'src/media/dto/media.dto';
-import { Currency, TicketGenerationMode, TicketQuota, TicketType } from './ticket.interface';
+import { Currency, TicketGenerationMode, TicketQuota, TicketType } from '../interface/ticket.interface';
 
 export class TicketsMetadataDTO {
   @ApiProperty()
