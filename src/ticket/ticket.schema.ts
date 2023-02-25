@@ -33,6 +33,20 @@ export const TicketSchema = new mongoose.Schema({
     type: [String],
     required: false,
   },
+  ticketType: {
+    type: String,
+    required: true,
+  },
+  price: {
+    amount: {
+      type: Number,
+      required: true,
+    },
+    currency: {
+      type: String,
+      required: true,
+    },
+  },
   benefits: {
     type: String,
     required: false,
@@ -41,9 +55,9 @@ export const TicketSchema = new mongoose.Schema({
 
 export const TicketCollectionSchema = new mongoose.Schema({
   tickets: {
-    generalTickets: [TicketSchema],
-    vipTickets: [TicketSchema],
-    reservedSeatTickets: [TicketSchema],
+    general: [TicketSchema],
+    vip: [TicketSchema],
+    reservedSeat: [TicketSchema],
   },
   createdDate: {
     type: String,
@@ -146,5 +160,9 @@ export const TicketCollectionSchema = new mongoose.Schema({
       },
     },
     required: false,
+  },
+  generationMethod: {
+    type: String,
+    required: true,
   },
 });

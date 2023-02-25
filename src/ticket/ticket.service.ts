@@ -124,9 +124,9 @@ export class TicketService {
     try {
       const ticketCollection = await this.ticketCollectionModel.findOne({ subjectOf: eventId }).sort('desc');
       const ticketPreviews = {
-        vipTickets: ticketCollection.tickets.vipTickets.slice(0, 1),
-        generalTickets: ticketCollection.tickets.generalTickets.slice(0, 1),
-        reservedSeatTickets: ticketCollection.tickets.reservedSeatTickets.slice(0, 1),
+        vip: ticketCollection.tickets.vip.slice(0, 1),
+        general: ticketCollection.tickets.general.slice(0, 1),
+        reservedSeat: ticketCollection.tickets.reservedSeat.slice(0, 1),
       };
       return { tickets: ticketPreviews, ticketPrice: ticketCollection.ticketPrice };
     } catch (error) {
