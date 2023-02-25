@@ -31,7 +31,7 @@ export const TicketSchema = new mongoose.Schema({
   },
   ownerHistory: {
     type: [String],
-    required: false,
+    required: true,
   },
   ticketType: {
     type: String,
