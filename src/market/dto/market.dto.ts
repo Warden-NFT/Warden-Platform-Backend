@@ -1,7 +1,7 @@
 import { Expose } from 'class-transformer';
 import { Event } from 'src/event/interfaces/event.interface';
-import { TicketPriceDTO } from 'src/ticket/ticket.dto';
-import { Ticket, TicketCollection } from 'src/ticket/ticket.interface';
+import { TicketPriceDTO } from 'src/ticket/dto/ticket.dto';
+import { Ticket, TicketCollection } from 'src/ticket/interface/ticket.interface';
 import { EventOrganizerUser } from 'src/user/user.interface';
 
 @Expose()
