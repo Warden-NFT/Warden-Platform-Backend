@@ -221,3 +221,10 @@ export class UpdateTicketDTO {
   @IsString()
   ticketCollectionId: string;
 }
+
+export class TicketTransactionDTO {
+  walletAddress: `0x${string}`;
+  eventId: string;
+  ticketCollectionId: string;
+  ticketId: string;
+}

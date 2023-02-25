@@ -18,4 +18,8 @@ export class UpdateTicketOwnershipDTO {
   @ApiProperty()
   @IsBoolean()
   success: boolean;
+
+  @ApiProperty()
+  @IsString()
+  reason?: string;
 }

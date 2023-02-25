@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -8,6 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as moment from 'moment';
 import { Model } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { MarketEventTicketPreviewsDTO } from 'src/market/dto/market.dto';
@@ -286,20 +288,37 @@ export class TicketService {
    * - walletAddress
    *
    * Checks:
-   * It checks if the ticket is actually on sale (from the smart contract)
+   * It checks if the ticket is actually on sale (from the smart contract in the frontend)
    * It checks if the user is currently the owner of the ticket (if so, throw error)
    *
    * Next step:
-   * - the client shall execute the buy function of the smart contract
-   * call the buy function of the smart contract
+   * - the client shall execute the buy function of the smart contract call the buy function of the smart contract
    * - ensure that the ticket status in the smart contract isSold is true
    */
-  async checkTicketPurchasePermission(): Promise<TicketTransactionPermissionDTO> {
-    // TODO
-    return {
-      allowed: true,
-      reason: '',
-    };
+  async checkTicketPurchasePermission(
+    walletAddress: `0x${string}`,
+    eventId: string,
+    ticketCollectionId: string,
+    ticketId: string,
+  ): Promise<TicketTransactionPermissionDTO> {
+    try {
+      const _ticket = await this.getTicketByID(ticketCollectionId, ticketId);
+      if (_ticket.ownerAddress === walletAddress) {
+        return { allowed: false, reason: 'You cannot purchase your own ticket' };
+      }
+
+      const _event = await this.eventService.getEvent(eventId);
+      if (moment(new Date(_event.startDate)).add(-7, 'hours') < moment()) {
+        return { allowed: false, reason: 'The event has already begun' };
+      }
+
+      return {
+        allowed: true,
+        reason: '',
+      };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
   }
 
   /**
@@ -315,12 +334,48 @@ export class TicketService {
    * - add the walletAddress to the ticket
    * - add the user's wallet address to the ticket's owner history array
    */
-  async recordTicketPurchase(): Promise<UpdateTicketOwnershipDTO> {
-    // TODO:
+  async recordTicketPurchase(
+    walletAddress: `0x${string}`,
+    eventId: string,
+    ticketCollectionId: string,
+    ticketId: string,
+    userId: string,
+  ): Promise<UpdateTicketOwnershipDTO> {
+    const permission = await this.checkTicketPurchasePermission(walletAddress, eventId, ticketCollectionId, ticketId);
+    if (!permission.allowed) {
+      throw new ForbiddenException(permission.reason);
+    }
+    try {
+      const _ticket = await this.getTicketByID(ticketCollectionId, ticketId);
+      const _event = await this.eventService.getEvent(eventId);
+      _ticket.ownerHistory.push(_event.organizerId);
+      _ticket.ownerAddress = walletAddress;
+      await this.updateTicket(_ticket, ticketCollectionId, userId);
+      return {
+        success: true,
+      };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
+  // Sell ticket
+  async listTicketForSale(
+    walletAddress: `0x${string}`,
+    eventId: string,
+    ticketCollectionId: string,
+    ticketId: string,
+    userId: string,
+  ): Promise<UpdateTicketOwnershipDTO> {
+    const _ticket = await this.getTicketByID(ticketCollectionId, ticketId);
+    if (_ticket.ownerAddress !== walletAddress) {
+      throw new ForbiddenException('You can only sell your own ticket');
+    }
+    _ticket.ownerHistory.push(walletAddress);
+    _ticket.ownerAddress = walletAddress;
+    await this.updateTicket(_ticket, ticketCollectionId, userId);
     return {
       success: true,
     };
   }
-
-  // Sell ticket
 }

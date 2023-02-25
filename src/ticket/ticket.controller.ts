@@ -17,6 +17,7 @@ import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
@@ -34,7 +35,9 @@ import {
   UpdateTicketDTO,
   updateTicketCollectionImagesDTO,
   VIPTicketDTO,
+  TicketTransactionDTO,
 } from './dto/ticket.dto';
+import { TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection } from './interface/ticket.interface';
 import { TicketService } from './ticket.service';
 
@@ -134,5 +137,47 @@ export class TicketController {
   @UseGuards(JwtAuthGuard)
   async deleteTicket(@Query('collectionId') collectionId: string, @Req() req) {
     return this.ticketService.deleteTicket(collectionId, req.user.uid);
+  }
+
+  @Post('/transaction/permission')
+  @ApiOkResponse({ type: TicketTransactionPermissionDTO })
+  @ApiBadRequestResponse({ description: 'Unable to get the ticket transaction permission' })
+  async checkTicketPurchasePermission(@Body() dto: TicketTransactionDTO) {
+    return this.ticketService.checkTicketPurchasePermission(
+      dto.walletAddress,
+      dto.eventId,
+      dto.ticketCollectionId,
+      dto.ticketId,
+    );
+  }
+
+  @Post('/transaction/record-purchase')
+  @ApiOkResponse({ type: UpdateTicketOwnershipDTO })
+  @ApiForbiddenResponse({ description: 'You do not have sufficient permission to purchase this ticket' })
+  @ApiBadRequestResponse({ description: 'Unable to record the ticket purchase.' })
+  @UseGuards(JwtAuthGuard)
+  async recordTicketPurchase(@Body() dto: TicketTransactionDTO, @Req() req) {
+    return this.ticketService.recordTicketPurchase(
+      dto.walletAddress,
+      dto.eventId,
+      dto.ticketCollectionId,
+      dto.ticketId,
+      req.user.uid,
+    );
+  }
+
+  @Post('/transaction/list')
+  @ApiOkResponse({ type: UpdateTicketOwnershipDTO })
+  @ApiForbiddenResponse({ description: 'You do not have sufficient permission to list this ticket for sale' })
+  @ApiBadRequestResponse({ description: 'Unable to record the ticket purchase.' })
+  @UseGuards(JwtAuthGuard)
+  async listTicketForSale(@Body() dto: TicketTransactionDTO, @Req() req) {
+    return this.ticketService.listTicketForSale(
+      dto.walletAddress,
+      dto.eventId,
+      dto.ticketCollectionId,
+      dto.ticketId,
+      req.user.uid,
+    );
   }
 }
