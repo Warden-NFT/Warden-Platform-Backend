@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
   Put,
   Query,
@@ -84,14 +85,13 @@ export class TicketController {
     return metadata;
   }
 
-  // TODO: This endpoint should be separated into another module "sales"
-  // @Get('/getTicketsOfUser')
-  // @ApiOkResponse({ type: [TicketDTO] })
-  // @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  // @UseGuards(JwtAuthGuard)
-  // async getTicketsOfUser(@Query('id') userId: string): Promise<Ticket[]> {
-  //   return this.ticketService.getTicketsOfUser(new mongoose.Types.ObjectId(userId));
-  // }
+  @Get('/user/:walletAddress')
+  @ApiOkResponse({ type: [TicketDTO] })
+  @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
+  @UseGuards(JwtAuthGuard)
+  async getTicketsOfUser(@Param('walletAddress') walletAddress: string): Promise<Ticket[]> {
+    return this.ticketService.getTicketsOfUser(walletAddress);
+  }
 
   @Put('/collection')
   @ApiOkResponse({ schema: { anyOf: refs(TicketDTO, VIPTicketDTO) } })

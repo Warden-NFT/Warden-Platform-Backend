@@ -140,16 +140,27 @@ export class TicketService {
     }
   }
 
-  // TODO: This endpoint should be separated into another module "sales"
-  // // Get all tickets belonging to a person
-  // async getTicketsOfUser(userId: Types.ObjectId): Promise<Ticket[]> {
-  //   try {
-  //     const tickets = await this.ticketModel.find({ ownerId: userId });
-  //     return tickets;
-  //   } catch (error) {
-  //     throwBadRequestError(error);
-  //   }
-  // }
+  // Get all tickets belonging to a person
+  async getTicketsOfUser(walletAddress: string): Promise<Ticket[]> {
+    try {
+      const ticketCollections = await this.ticketCollectionModel.find().exec();
+      const allTickets = ticketCollections.flatMap((tc) => [
+        ...tc.tickets.general,
+        ...tc.tickets.vip,
+        ...tc.tickets.reservedSeat,
+      ]);
+      const filteredTickets = allTickets.filter((ticket) => {
+        const ownerHistory = ticket.ownerHistory;
+        if (ownerHistory && ownerHistory.length > 0) {
+          return ownerHistory[ownerHistory.length - 1] === walletAddress;
+        }
+        return false;
+      });
+      return filteredTickets;
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
 
   // Update ticket set details
   async updateTicketCollection(ticketCollection: TicketCollectionDTO, ownerId: string): Promise<TicketCollection> {
@@ -231,11 +242,12 @@ export class TicketService {
       let _index = 0;
       ticketTypes.forEach((key) => {
         ticketCollectionToBeUpdated.tickets[key].forEach((item, index) => {
-          if (item._id === ticket._id) {
-            ticketCollectionToBeUpdated.tickets[key][index] = {
-              ...ticketCollectionToBeUpdated.tickets[key][index],
-              ...ticket,
-            };
+          if (item._id.toString() === ticket._id.toString()) {
+            ticketCollectionToBeUpdated.tickets[key][index] = Object.assign(
+              ticketCollectionToBeUpdated.tickets[key][index],
+              ticketCollectionToBeUpdated.tickets[key][index],
+              ticket,
+            );
             _key = key;
             _index = index;
           }
