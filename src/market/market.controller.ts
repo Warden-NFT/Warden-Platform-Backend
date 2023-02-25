@@ -21,7 +21,6 @@ export class MarketController {
   @Get('featured')
   @ApiOkResponse({ type: [Event] })
   @ApiBadRequestResponse({ description: 'Unable to get the featured events' })
-  @UseGuards(JwtAuthGuard)
   async getFeaturedEvents() {
     return this.marketService.getFeaturedEvents();
   }
@@ -39,7 +38,6 @@ export class MarketController {
   @Get('latest')
   @ApiOkResponse({ type: [Event] })
   @ApiBadRequestResponse({ description: 'Unable to get the latest events' })
-  @UseGuards(JwtAuthGuard)
   async getLatestEvents(@Query('limit') limit: string, @Query('startTimeStamp') startTimeStamp: string) {
     return this.marketService.getLatestEvents(parseInt(limit) ?? 10, startTimeStamp);
   }
@@ -49,7 +47,6 @@ export class MarketController {
   @Post('search')
   @ApiOkResponse({ type: [Event] })
   @ApiBadRequestResponse({ description: 'Unable to get search for the events' })
-  @UseGuards(JwtAuthGuard)
   async searchEvents(@Body() eventSearchDTO: EventSearchDTO) {
     return this.marketService.searchEvents(eventSearchDTO);
   }
@@ -59,7 +56,6 @@ export class MarketController {
   @Get('events')
   @ApiOkResponse({ type: MarketEventDTO })
   @ApiBadRequestResponse({ description: 'Unable to search for the market events' })
-  @UseGuards(JwtAuthGuard)
   async getMarketEvents(@Query('organizerId') organizerId: string) {
     return this.marketService.getMarketEvents(organizerId);
   }
