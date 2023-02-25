@@ -14,8 +14,9 @@ import { MarketEventTicketPreviewsDTO } from 'src/market/dto/market.dto';
 import { StorageService } from 'src/storage/storage.service';
 import { throwBadRequestError } from 'src/utils/httpError';
 import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
-import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './ticket.dto';
-import { Ticket, TicketCollection, TicketTypeKeys } from './ticket.interface';
+import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './dto/ticket.dto';
+import { TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
+import { Ticket, TicketCollection, TicketTypeKeys } from './interface/ticket.interface';
 
 @Injectable()
 export class TicketService {
@@ -277,4 +278,49 @@ export class TicketService {
       throwBadRequestError(error);
     }
   }
+
+  /**
+   * This service is called when the user buys a ticket from the market, either directly or from a resale ticket listing
+   *
+   * Parameters:
+   * - walletAddress
+   *
+   * Checks:
+   * It checks if the ticket is actually on sale (from the smart contract)
+   * It checks if the user is currently the owner of the ticket (if so, throw error)
+   *
+   * Next step:
+   * - the client shall execute the buy function of the smart contract
+   * call the buy function of the smart contract
+   * - ensure that the ticket status in the smart contract isSold is true
+   */
+  async checkTicketPurchasePermission(): Promise<TicketTransactionPermissionDTO> {
+    // TODO
+    return {
+      allowed: true,
+      reason: '',
+    };
+  }
+
+  /**
+   * this service is called after the user successfully bought a ticket via smart contract interaction
+   *
+   * Parameters:
+   * - walletAddress
+   * - eventId
+   * - ticketCollectionId
+   * - ticketId
+   *
+   * Operations:
+   * - add the walletAddress to the ticket
+   * - add the user's wallet address to the ticket's owner history array
+   */
+  async recordTicketPurchase(): Promise<UpdateTicketOwnershipDTO> {
+    // TODO:
+    return {
+      success: true,
+    };
+  }
+
+  // Sell ticket
 }
