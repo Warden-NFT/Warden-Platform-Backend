@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsBoolean, IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
 import { MultipleMediaUploadPayloadDTO } from 'src/media/dto/media.dto';
-import { Currency, TicketQuota } from './ticket.interface';
+import { Currency, TicketGenerationMode, TicketQuota, TicketType } from './ticket.interface';
 
 export class TicketsMetadataDTO {
   @ApiProperty()
@@ -57,6 +57,16 @@ export class TicketPriceDTO {
   };
 }
 
+export class PriceDTO {
+  @ApiProperty()
+  @IsNumber()
+  amount: number;
+
+  @ApiProperty()
+  @IsString()
+  currency: Currency;
+}
+
 export class TicketDTO {
   @ApiProperty()
   @IsString()
@@ -82,12 +92,15 @@ export class TicketDTO {
   ticketMetadata: TicketsMetadataDTO[];
 
   @ApiProperty()
-  @IsString()
-  ownerAddress: string;
-
-  @ApiProperty()
   @IsString({ each: true })
   ownerHistory: string[];
+
+  @ApiProperty()
+  @IsString()
+  ticketType: TicketType;
+
+  @ApiProperty({ type: PriceDTO })
+  price: PriceDTO;
 }
 
 export class VIPTicketDTO extends TicketDTO {
@@ -114,10 +127,10 @@ export class TicketTypesDTO {
   genreralTickets: TicketDTO[];
 
   @ApiProperty({ type: [TicketDTO] })
-  vipTickets: VIPTicketDTO[];
+  vip: VIPTicketDTO[];
 
   @ApiProperty({ type: [TicketDTO] })
-  reservedSeatTickets: ReservedSeatDTO[];
+  reservedSeat: ReservedSeatDTO[];
 }
 
 @Expose()
@@ -129,8 +142,8 @@ export class TicketCollectionDTO {
   @ApiProperty({ type: TicketTypesDTO })
   tickets: {
     genreralTickets: TicketDTO[];
-    vipTickets: VIPTicketDTO[];
-    reservedSeatTickets: ReservedSeatDTO[];
+    vip: VIPTicketDTO[];
+    reservedSeat: ReservedSeatDTO[];
   };
 
   @ApiProperty()
@@ -188,6 +201,10 @@ export class TicketCollectionDTO {
 
   @ApiProperty({ type: TicketQuotaDTO })
   ticketQuota: TicketQuota;
+
+  @ApiProperty()
+  @IsString()
+  generationMethod: TicketGenerationMode; // new
 }
 
 export class updateTicketCollectionImagesDTO extends MultipleMediaUploadPayloadDTO {

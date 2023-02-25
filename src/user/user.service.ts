@@ -105,7 +105,7 @@ export class UserService {
           },
         ]);
         if (uploadProfileImageRes.success) {
-          const profileImageURL = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${newUser._id}/profileImage`;
+          const profileImageURL = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/profile/${newUser._id}/profileImage`;
           userInfo.profileImage = profileImageURL;
           newUser.profileImage = profileImageURL;
         }
@@ -167,7 +167,7 @@ export class UserService {
           },
         ]);
         if (uploadProfileImageRes.success) {
-          const profileImageURL = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/${newUser._id}/profileImage`;
+          const profileImageURL = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/profile/${newUser._id}/profileImage`;
           userInfo.profileImage = profileImageURL;
           newUser.profileImage = profileImageURL;
         }

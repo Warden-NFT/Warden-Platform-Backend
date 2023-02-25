@@ -31,7 +31,7 @@ export class MarketEventDTO {
 
 @Expose()
 export class MarketEventTicketPreviewsDTO {
-  tickets: { generalTickets: Ticket[]; vipTickets: Ticket[]; reservedSeatTickets: Ticket[] };
+  tickets: { general: Ticket[]; vip: Ticket[]; reservedSeat: Ticket[] };
   ticketPrice: TicketPriceDTO;
 }
 
