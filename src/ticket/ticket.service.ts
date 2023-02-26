@@ -248,7 +248,6 @@ export class TicketService {
           if (item._id.toString() === ticket._id.toString()) {
             ticketCollectionToBeUpdated.tickets[key][index] = Object.assign(
               ticketCollectionToBeUpdated.tickets[key][index],
-              ticketCollectionToBeUpdated.tickets[key][index],
               ticket,
             );
             _key = key;
@@ -340,7 +339,7 @@ export class TicketService {
     ticketCollectionId: string,
     ticketId: string,
     userId: string,
-  ): Promise<UpdateTicketOwnershipDTO> {
+  ): Promise<void> {
     const permission = await this.checkTicketPurchasePermission(walletAddress, eventId, ticketCollectionId, ticketId);
     if (!permission.allowed) {
       throw new ForbiddenException(permission.reason);
@@ -351,9 +350,6 @@ export class TicketService {
       _ticket.ownerHistory.push(_event.organizerId);
       _ticket.ownerAddress = walletAddress;
       await this.updateTicket(_ticket, ticketCollectionId, userId);
-      return {
-        success: true,
-      };
     } catch (error) {
       throwBadRequestError(error);
     }
