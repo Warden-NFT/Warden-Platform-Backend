@@ -58,7 +58,6 @@ export class TicketController {
   @Get()
   @ApiOkResponse({ type: TicketCollectionDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  @UseGuards(JwtAuthGuard)
   async getTicketCollection(@Query('collectionId') collectionId: string): Promise<TicketCollection> {
     return this.ticketService.getTicketCollectionByID(collectionId);
   }
@@ -66,7 +65,6 @@ export class TicketController {
   @Get('/single')
   @ApiOkResponse({ schema: { anyOf: refs(TicketDTO, VIPTicketDTO) } })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  @UseGuards(JwtAuthGuard)
   async getTicket(@Query('eventId') eventId: string, @Query('ticketId') ticketId: string): Promise<Ticket> {
     return this.ticketService.getTicketByID(eventId, ticketId);
   }
@@ -74,7 +72,6 @@ export class TicketController {
   @Get('/multiple')
   @ApiOkResponse({ type: TicketDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  @UseGuards(JwtAuthGuard)
   async getTicketOfEvent(@Query('eventId') eventId: string): Promise<TicketCollection> {
     return this.ticketService.getTicketsOfEvent(eventId);
   }
