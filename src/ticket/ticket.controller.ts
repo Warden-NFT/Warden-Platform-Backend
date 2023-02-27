@@ -67,8 +67,8 @@ export class TicketController {
   @ApiOkResponse({ schema: { anyOf: refs(TicketDTO, VIPTicketDTO) } })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicket(@Query('collectionId') collectionId: string, @Query('ticketId') ticketId: string): Promise<Ticket> {
-    return this.ticketService.getTicketByID(collectionId, ticketId);
+  async getTicket(@Query('eventId') eventId: string, @Query('ticketId') ticketId: string): Promise<Ticket> {
+    return this.ticketService.getTicketByID(eventId, ticketId);
   }
 
   @Get('/multiple')
