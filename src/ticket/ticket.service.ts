@@ -19,6 +19,7 @@ import { DeleteResponseDTO } from '../utils/httpResponse.dto';
 import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection, TicketTypeKeys } from './interface/ticket.interface';
+import { Event } from 'src/event/interfaces/event.interface';
 
 @Injectable()
 export class TicketService {
@@ -80,7 +81,12 @@ export class TicketService {
   }
 
   // Get the ticket information by ID
-  async getTicketByID(ticketCollectionId: string, ticketId: string): Promise<Ticket> {
+  async getTicketByID(eventId: string, ticketId: string): Promise<Ticket> {
+    const event = await this.eventService.getEvent(eventId);
+    if (!event) {
+      throw new NotFoundException(`Event with _id: ${eventId} cannot be found`);
+    }
+    const ticketCollectionId = event.ticketCollectionId;
     try {
       const ticketCollection = await this.ticketCollectionModel.findById(ticketCollectionId);
       if (!ticketCollection) throw new NotFoundException(`Ticket #${ticketCollectionId} not found`);
@@ -318,7 +324,7 @@ export class TicketService {
     ticketId: string,
   ): Promise<TicketTransactionPermissionDTO> {
     try {
-      const _ticket = await this.getTicketByID(ticketCollectionId, ticketId);
+      const _ticket = await this.getTicketByID(eventId, ticketId);
       if (_ticket.ownerAddress === walletAddress) {
         return { allowed: false, reason: 'You cannot purchase your own ticket' };
       }
@@ -362,7 +368,7 @@ export class TicketService {
       throw new ForbiddenException(permission.reason);
     }
     try {
-      const _ticket = await this.getTicketByID(ticketCollectionId, ticketId);
+      const _ticket = await this.getTicketByID(eventId, ticketId);
       const _event = await this.eventService.getEvent(eventId);
       _ticket.ownerHistory.push(_event.organizerId);
       _ticket.ownerAddress = walletAddress;
@@ -380,7 +386,7 @@ export class TicketService {
     ticketId: string,
     userId: string,
   ): Promise<UpdateTicketOwnershipDTO> {
-    const _ticket = await this.getTicketByID(ticketCollectionId, ticketId);
+    const _ticket = await this.getTicketByID(eventId, ticketId);
     if (_ticket.ownerAddress !== walletAddress) {
       throw new ForbiddenException('You can only sell your own ticket');
     }
