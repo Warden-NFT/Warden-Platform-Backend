@@ -192,7 +192,7 @@ export class MarketService {
     const organizerInfo = _organizerInfo as EventOrganizerUser;
 
     // Ticket Info
-    const ticket = await this.ticketService.getTicketByID(ticketCollectionId, ticketId);
+    const ticket = await this.ticketService.getTicketByID(eventId, ticketId);
 
     return {
       organizerInfo,
