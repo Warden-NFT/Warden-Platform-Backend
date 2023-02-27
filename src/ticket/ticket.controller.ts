@@ -37,7 +37,7 @@ import {
   VIPTicketDTO,
   TicketTransactionDTO,
 } from './dto/ticket.dto';
-import { TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
+import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection } from './interface/ticket.interface';
 import { TicketService } from './ticket.service';
 
@@ -92,7 +92,7 @@ export class TicketController {
   @ApiOkResponse({ type: [TicketDTO] })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
-  async getTicketsOfUser(@Param('walletAddress') walletAddress: string): Promise<Ticket[]> {
+  async getTicketsOfUser(@Param('walletAddress') walletAddress: string): Promise<MyTicketsDTO> {
     return this.ticketService.getTicketsOfUser(walletAddress);
   }
 

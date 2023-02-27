@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsBoolean, IsString } from 'class-validator';
+import { Ticket } from '../interface/ticket.interface';
 
 @Expose()
 export class TicketTransactionPermissionDTO {
@@ -22,4 +23,10 @@ export class UpdateTicketOwnershipDTO {
   @ApiProperty()
   @IsString()
   reason?: string;
+}
+
+@Expose()
+export class MyTicketsDTO {
+  myTickets: Ticket[];
+  myTicketListing: Ticket[];
 }
