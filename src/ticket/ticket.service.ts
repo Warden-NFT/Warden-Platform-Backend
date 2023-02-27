@@ -11,13 +11,13 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import * as moment from 'moment';
 import { Model } from 'mongoose';
-import { EventService } from 'src/event/event.service';
+import { EventService } from '../event/event.service';
 import { MarketEventTicketPreviewsDTO } from 'src/market/dto/market.dto';
-import { StorageService } from 'src/storage/storage.service';
-import { throwBadRequestError } from 'src/utils/httpError';
-import { DeleteResponseDTO } from 'src/utils/httpResponse.dto';
+import { StorageService } from '../storage/storage.service';
+import { throwBadRequestError } from '../utils/httpError';
+import { DeleteResponseDTO } from '../utils/httpResponse.dto';
 import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './dto/ticket.dto';
-import { TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
+import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection, TicketTypeKeys } from './interface/ticket.interface';
 
 @Injectable()
@@ -143,8 +143,8 @@ export class TicketService {
     }
   }
 
-  // Get all tickets belonging to a person
-  async getTicketsOfUser(walletAddress: string): Promise<Ticket[]> {
+  // Get all tickets belonging to a person including those they own and those they are selling
+  async getTicketsOfUser(walletAddress: string): Promise<MyTicketsDTO> {
     try {
       const ticketCollections = await this.ticketCollectionModel.find().exec();
       const allTickets = ticketCollections.flatMap((tc) => [
@@ -152,14 +152,31 @@ export class TicketService {
         ...tc.tickets.vip,
         ...tc.tickets.reservedSeat,
       ]);
-      const filteredTickets = allTickets.filter((ticket) => {
+
+      // this array contains all the tickets the user currently owns
+      const myTickets = allTickets.filter((ticket) => {
         const ownerHistory = ticket.ownerHistory;
         if (ownerHistory && ownerHistory.length > 0) {
           return ownerHistory[ownerHistory.length - 1] === walletAddress;
         }
         return false;
       });
-      return filteredTickets;
+
+      // this array contains all the tickets the user currnely lists for sale
+      const myTicketListing = allTickets.filter((ticket) => {
+        const ownerHistory = ticket.ownerHistory;
+        if (ownerHistory && ownerHistory.length > 0) {
+          return (
+            ownerHistory[ownerHistory.length - 1] === ownerHistory[0] &&
+            ownerHistory[ownerHistory.length - 2] === walletAddress
+          );
+        }
+        return false;
+      });
+      return {
+        myTickets,
+        myTicketListing,
+      };
     } catch (error) {
       throwBadRequestError(error);
     }
