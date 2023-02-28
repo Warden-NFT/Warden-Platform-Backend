@@ -53,7 +53,6 @@ export class EventController {
   @ApiOkResponse({ type: EventDTO })
   @ApiNotFoundResponse({ description: 'Event #${eventId} not found' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  @UseGuards(EventOrganizerGuard)
   async getEvent(@Query('id') eventId: string) {
     return this.eventService.getEvent(eventId);
   }
@@ -62,7 +61,6 @@ export class EventController {
   @ApiOkResponse({ type: [EventDTO] })
   @ApiNotFoundResponse({ description: 'Event #${eventId} not found' })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  @UseGuards(EventOrganizerGuard)
   async getEventsFromOrganizer(@Req() req: any, @Query('unlisted') unlisted: boolean) {
     return this.eventService.getEventFromEventOrganizer(req.user.uid, unlisted);
   }
