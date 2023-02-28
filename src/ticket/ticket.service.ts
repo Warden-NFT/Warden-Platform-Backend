@@ -253,13 +253,14 @@ export class TicketService {
     ticket: TicketDTO | VIPTicketDTO,
     ticketCollectionId: string,
     ownerId: string,
+    isTransactionUpdate?: boolean,
   ): Promise<TicketDTO | VIPTicketDTO> {
     try {
       const ticketToBeUpdated = await this.ticketCollectionModel.findById(ticketCollectionId);
       if (!ticketToBeUpdated) {
         throw new NotFoundException(`Ticket set #${ticketCollectionId} not found`);
       }
-      if (ticketToBeUpdated.ownerId.toString() !== ownerId) {
+      if (!isTransactionUpdate && ticketToBeUpdated.ownerId.toString() !== ownerId) {
         throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
       }
       const ticketCollectionToBeUpdated = await this.ticketCollectionModel.findById(ticketCollectionId);
@@ -370,9 +371,9 @@ export class TicketService {
     try {
       const _ticket = await this.getTicketByID(eventId, ticketId);
       const _event = await this.eventService.getEvent(eventId);
-      _ticket.ownerHistory.push(_event.organizerId);
+      _ticket.ownerHistory.push(walletAddress);
       _ticket.ownerAddress = walletAddress;
-      await this.updateTicket(_ticket, ticketCollectionId, userId);
+      await this.updateTicket(_ticket, ticketCollectionId, userId, true);
     } catch (error) {
       throwBadRequestError(error);
     }
