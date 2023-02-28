@@ -1,13 +1,19 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { UserGeneralInfoDTO } from 'src/user/dto/user.dto';
+import { EventOrganizerUser } from 'src/user/user.interface';
 import { StorageService } from '../storage/storage.service';
 import { EventDTO, UpdateEventDTO } from './event.dto';
 import { Event } from './interfaces/event.interface';
 
 @Injectable()
 export class EventService {
-  constructor(@InjectModel('Event') private eventModel: Model<Event>, private storageService: StorageService) {}
+  constructor(
+    @InjectModel('Event') private eventModel: Model<Event>,
+    @InjectModel('User') private userModel: Model<EventOrganizerUser>,
+    private storageService: StorageService,
+  ) {}
 
   async createEvent(dto: EventDTO): Promise<Event> {
     try {
@@ -83,6 +89,27 @@ export class EventService {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async getEventOrganizerInfo(eventOrganizerId: string): Promise<UserGeneralInfoDTO> {
+    try {
+      const eventOrganizer = await this.userModel
+        .findById<EventOrganizerUser>(eventOrganizerId)
+        .select('phoneNumber email username verificationStatus accountType organizationName profileImage')
+        .exec();
+      if (!eventOrganizer) {
+        throw new NotFoundException(`Event organizer with the id ${eventOrganizerId} is not found`);
+      }
+      return eventOrganizer;
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: error?.statusCode ?? HttpStatus.BAD_REQUEST,
           message: error.message,
         },
         HttpStatus.BAD_REQUEST,
