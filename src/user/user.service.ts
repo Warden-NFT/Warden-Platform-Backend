@@ -153,7 +153,7 @@ export class UserService {
 
     try {
       // Create a new user
-      const newUser = new this.customerModel(user);
+      const newUser = new this.eventOrganizerModel(user);
       newUser.verificationStatus = VerificationStatus.NOT_VERIFIED;
       newUser.password = await this.authService.hashPassword(user.password);
 
