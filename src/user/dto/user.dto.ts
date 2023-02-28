@@ -93,6 +93,7 @@ export class UserGeneralInfoDTO {
   firstName?: string;
   lastName?: string;
   organizationName?: string;
+  profileImage?: string;
 }
 
 @Expose()

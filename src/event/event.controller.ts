@@ -22,6 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { EventOrganizerGuard } from 'src/auth/jwt.guard';
+import { UserGeneralInfoDTO } from 'src/user/dto/user.dto';
 import { FILE_SIZES } from 'src/utils/constants';
 import { DeleteResponseDTO, HttpErrorResponse } from 'src/utils/httpResponse.dto';
 import { EventDTO, UpdateEventDTO } from './event.dto';
@@ -63,6 +64,14 @@ export class EventController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   async getEventsFromOrganizer(@Req() req: any, @Query('unlisted') unlisted: boolean) {
     return this.eventService.getEventFromEventOrganizer(req.user.uid, unlisted);
+  }
+
+  @Get('/organizer/info')
+  @ApiOkResponse({ type: UserGeneralInfoDTO })
+  @ApiNotFoundResponse({ description: 'The event organizer with the given _id is not found.' })
+  @ApiBadRequestResponse({ description: 'The provided data is incorrectly formatted' })
+  async getEventOrganizerInfo(@Query('id') eventOragnizerId: string) {
+    return this.eventService.getEventOrganizerInfo(eventOragnizerId);
   }
 
   @Put()
