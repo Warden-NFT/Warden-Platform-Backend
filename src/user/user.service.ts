@@ -98,7 +98,7 @@ export class UserService {
       if (profileImage) {
         const uploadProfileImageRes = await this.storageService.saveFiles([
           {
-            path: `media/${newUser._id}/profileImage`,
+            path: `profile/${newUser._id}/profileImage`,
             contentType: profileImage.mimetype,
             media: profileImage.buffer,
             metadata: undefined,
@@ -160,7 +160,7 @@ export class UserService {
       if (profileImage) {
         const uploadProfileImageRes = await this.storageService.saveFiles([
           {
-            path: `media/${newUser._id}/profileImage`,
+            path: `profile/${newUser._id}/profileImage`,
             contentType: profileImage.mimetype,
             media: profileImage.buffer,
             metadata: undefined,
