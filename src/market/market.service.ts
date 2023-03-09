@@ -181,26 +181,23 @@ export class MarketService {
   }
 
   async getOwnedTicketsFromEventId(eventId: string, walletAddress: string): Promise<MarketTicketDTO> {
-    const _marketTickets = await this.getMarketTickets(eventId);
-    if (!_marketTickets) {
+    const marketTickets = await this.getMarketTickets(eventId);
+    if (!marketTickets) {
       throw new NotFoundException();
     }
 
-    _marketTickets.ticketCollection.tickets.general = _marketTickets.ticketCollection.tickets.general.filter(
-      (ticket) => {
-        return ticket.ownerHistory[ticket.ownerHistory.length - 1] === walletAddress;
-      },
-    );
-    _marketTickets.ticketCollection.tickets.vip = _marketTickets.ticketCollection.tickets.vip.filter((ticket) => {
+    const filterByWalletAddress = (ticket) => {
       return ticket.ownerHistory[ticket.ownerHistory.length - 1] === walletAddress;
-    });
-    _marketTickets.ticketCollection.tickets.reservedSeat = _marketTickets.ticketCollection.tickets.reservedSeat.filter(
-      (ticket) => {
-        return ticket.ownerHistory[ticket.ownerHistory.length - 1] === walletAddress;
-      },
-    );
+    };
 
-    return _marketTickets;
+    marketTickets.ticketCollection.tickets.general =
+      marketTickets.ticketCollection.tickets.general.filter(filterByWalletAddress);
+    marketTickets.ticketCollection.tickets.vip =
+      marketTickets.ticketCollection.tickets.vip.filter(filterByWalletAddress);
+    marketTickets.ticketCollection.tickets.reservedSeat =
+      marketTickets.ticketCollection.tickets.reservedSeat.filter(filterByWalletAddress);
+
+    return marketTickets;
   }
 
   // Get ticket listing details
