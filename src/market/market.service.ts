@@ -4,6 +4,7 @@ import { ROLE } from 'common/roles';
 import mongoose, { Model } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { Event } from 'src/event/interfaces/event.interface';
+import { TicketCollection } from 'src/ticket/interface/ticket.interface';
 import { TicketService } from 'src/ticket/ticket.service';
 import { EventOrganizerUser } from 'src/user/user.interface';
 import { UserService } from 'src/user/user.service';
@@ -16,6 +17,7 @@ export class MarketService {
   constructor(
     @InjectModel('Event') private eventModel: Model<Event>,
     @InjectModel('Market') private marketModel: Model<Market>,
+    @InjectModel('TicketCollection') private ticketCollectionModel: Model<TicketCollection>,
     private eventService: EventService,
     private userService: UserService,
     private ticketService: TicketService,
@@ -178,6 +180,29 @@ export class MarketService {
     }
   }
 
+  async getOwnedTicketsFromEventId(eventId: string, walletAddress: string): Promise<MarketTicketDTO> {
+    const _marketTickets = await this.getMarketTickets(eventId);
+    if (!_marketTickets) {
+      throw new NotFoundException();
+    }
+
+    _marketTickets.ticketCollection.tickets.general = _marketTickets.ticketCollection.tickets.general.filter(
+      (ticket) => {
+        return ticket.ownerHistory[ticket.ownerHistory.length - 1] === walletAddress;
+      },
+    );
+    _marketTickets.ticketCollection.tickets.vip = _marketTickets.ticketCollection.tickets.vip.filter((ticket) => {
+      return ticket.ownerHistory[ticket.ownerHistory.length - 1] === walletAddress;
+    });
+    _marketTickets.ticketCollection.tickets.reservedSeat = _marketTickets.ticketCollection.tickets.reservedSeat.filter(
+      (ticket) => {
+        return ticket.ownerHistory[ticket.ownerHistory.length - 1] === walletAddress;
+      },
+    );
+
+    return _marketTickets;
+  }
+
   // Get ticket listing details
   async getTicketListingDetails(
     eventId: string,
@@ -193,6 +218,38 @@ export class MarketService {
 
     // Ticket Info
     const ticket = await this.ticketService.getTicketByID(eventId, ticketId);
+
+    return {
+      organizerInfo,
+      event,
+      ticket,
+    };
+  }
+
+  // Get ticket listing details
+  async getTicketListingDetailsFromTicketId(ticketId: string): Promise<TicketListingInfoDTO> {
+    // Ticket Info
+    const ticketCollection = await this.ticketCollectionModel.findOne({
+      $or: [
+        { 'tickets.general._id': ticketId },
+        { 'tickets.vip._id': ticketId },
+        { 'tickets.reservedSeat._id': ticketId },
+      ],
+    });
+    if (!ticketCollection) throw new NotFoundException('Ticket with the given _id is not found');
+
+    // Event Info
+    const event = await this.eventService.getEvent(ticketCollection.subjectOf);
+    if (!event) throw new NotFoundException('Associated event is not found');
+
+    // Ticket
+    const ticket = await this.ticketService.getTicketByID(event._id.toString(), ticketId);
+    if (!ticketCollection) throw new NotFoundException('Ticket with the given _id is not found');
+
+    // Event Organizer Info
+    const _organizerInfo = await this.userService.findById(event.organizerId);
+    const organizerInfo = _organizerInfo as EventOrganizerUser;
+    if (!organizerInfo) throw new NotFoundException('Associated event organizer is not found');
 
     return {
       organizerInfo,
