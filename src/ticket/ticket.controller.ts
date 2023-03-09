@@ -88,7 +88,6 @@ export class TicketController {
   @Get('/user/:walletAddress')
   @ApiOkResponse({ type: [TicketDTO] })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  @UseGuards(JwtAuthGuard)
   async getTicketsOfUser(@Param('walletAddress') walletAddress: string): Promise<MyTicketsDTO> {
     return this.ticketService.getTicketsOfUser(walletAddress);
   }
