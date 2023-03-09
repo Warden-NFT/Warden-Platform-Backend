@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as moment from 'moment';
 import { Model } from 'mongoose';
 import { SmartContractAbiDTO, SmartContractBytecodeDTO } from './dto/smart-contract.dto';
 import { SmartContractABI, SmartContractBytecode } from './interface/smart-contract.interface';
@@ -13,7 +14,7 @@ export class SmartContractService {
 
   async uploadSmartContractABI(abi): Promise<SmartContractAbiDTO> {
     const payload = {
-      date: new Date(),
+      date: moment(new Date()).format('MMMM Do YYYY, h:mm:ss a'),
       abi: abi,
     };
     try {
@@ -51,7 +52,7 @@ export class SmartContractService {
 
   async uploadSmartContractBytecode(bytecodeJson): Promise<SmartContractBytecodeDTO> {
     const payload = {
-      date: new Date(),
+      date: moment(new Date()).format('MMMM Do YYYY, h:mm:ss a'),
       bytecode: bytecodeJson,
     };
     try {
