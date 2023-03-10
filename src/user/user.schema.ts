@@ -3,7 +3,6 @@ import * as mongoose from 'mongoose';
 
 const verificationSchemaType = {
   type: String,
-  enum: ['NotVerified', 'Verified'],
 };
 
 class UserSchemaClass extends mongoose.Schema {
@@ -15,6 +14,7 @@ class UserSchemaClass extends mongoose.Schema {
       username: String,
       password: String,
       verificationStatus: verificationSchemaType,
+      profileImage: String,
     });
 
     this.methods.editAccountInfo = function (updt): void {

@@ -1,13 +1,19 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { StorageService } from 'src/storage/storage.service';
+import { UserGeneralInfoDTO } from 'src/user/dto/user.dto';
+import { EventOrganizerUser } from 'src/user/user.interface';
+import { StorageService } from '../storage/storage.service';
 import { EventDTO, UpdateEventDTO } from './event.dto';
 import { Event } from './interfaces/event.interface';
 
 @Injectable()
 export class EventService {
-  constructor(@InjectModel('Event') private eventModel: Model<Event>, private storageService: StorageService) {}
+  constructor(
+    @InjectModel('Event') private eventModel: Model<Event>,
+    @InjectModel('User') private userModel: Model<EventOrganizerUser>,
+    private storageService: StorageService,
+  ) {}
 
   async createEvent(dto: EventDTO): Promise<Event> {
     try {
@@ -43,11 +49,22 @@ export class EventService {
     }
   }
 
-  async getEventFromEventOrganizer(eventOrgagnizerId: string): Promise<Event[]> {
+  /**
+   *
+   * @param {string} eventOrganizerId: event organizer ID
+   * @param {boolean} unlisted: true when querying for events without a linked ticket only
+   * @returns
+   */
+  async getEventFromEventOrganizer(eventOrganizerId: string, unlisted: boolean): Promise<Event[]> {
     try {
-      const events: Event[] = await this.eventModel.find({ organizerId: eventOrgagnizerId }).exec();
+      let events: Event[] = await this.eventModel.find({ organizerId: eventOrganizerId }).sort({ _id: 'desc' }).exec();
       if (!events) {
-        throw new NotFoundException(`Events from #${eventOrgagnizerId} not found`);
+        throw new NotFoundException(`Events from #${eventOrganizerId} not found`);
+      }
+      if (unlisted) {
+        events = events.map((event) => {
+          if (!event.ticketCollectionId) return event;
+        });
       }
       return events;
     } catch (error) {
@@ -79,6 +96,27 @@ export class EventService {
     }
   }
 
+  async getEventOrganizerInfo(eventOrganizerId: string): Promise<UserGeneralInfoDTO> {
+    try {
+      const eventOrganizer = await this.userModel
+        .findById<EventOrganizerUser>(eventOrganizerId)
+        .select('phoneNumber email username verificationStatus accountType organizationName profileImage')
+        .exec();
+      if (!eventOrganizer) {
+        throw new NotFoundException(`Event organizer with the id ${eventOrganizerId} is not found`);
+      }
+      return eventOrganizer;
+    } catch (error) {
+      throw new HttpException(
+        {
+          statusCode: error?.statusCode ?? HttpStatus.BAD_REQUEST,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   async deleteEvent(eventId: string, eventOrganizerId: string) {
     try {
       return await this.eventModel.deleteOne({ _id: eventId, organizerId: eventOrganizerId });
@@ -96,7 +134,6 @@ export class EventService {
   async uploadEventImage(eventOrganizerId: string, eventId: string, image: Express.Multer.File) {
     try {
       const event: Event = await this.eventModel.findById(eventId);
-      console.log({ event });
       const isEventOwner = event.organizerId === eventOrganizerId;
       if (!isEventOwner) throw new UnauthorizedException('You are not the event owner');
       // If the user uploaded the event cover image, save it to GCS

@@ -1,7 +1,12 @@
-import { Role, ROLE } from 'common/roles';
+import { Role } from 'common/roles';
 import * as mongoose from 'mongoose';
 
 export type Verification = 'NotVerified' | 'Verified';
+
+export enum VerificationStatus {
+  NOT_VERIFIED = 'NotVerified',
+  VERIFIED = 'Verified',
+}
 
 export interface User extends mongoose.Document {
   phoneNumber: string;
@@ -10,17 +15,18 @@ export interface User extends mongoose.Document {
   password: string;
   verificationStatus: Verification;
   accountType: Role;
+  profileImage: string;
 }
 
 export interface CustomerUser extends User {
   firstName: string;
   lastName: string;
-  accountType: ROLE.CUSTOMER;
+  accountType: Role;
 }
 
 export interface EventOrganizerUser extends User {
   organizationName: string;
-  accountType: ROLE.EVENT_ORGANIZER;
+  accountType: Role;
 }
 
 export interface UserGeneralInfo {

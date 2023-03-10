@@ -9,11 +9,12 @@ import {
   SuccessfulVerificationDTO,
   UserGeneralInfoDTO,
 } from './dto/user.dto';
-import { CustomerUser, EventOrganizerUser, User, Verification } from './user.interface';
+import { CustomerUser, EventOrganizerUser, User, Verification, VerificationStatus } from './user.interface';
 import * as bcrypt from 'bcrypt';
 import { DuplicateElementException } from './user.exception';
-import { ROLE } from 'common/roles';
+import { Role, ROLE } from 'common/roles';
 import { throwBadRequestError } from 'src/utils/httpError';
+import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
 export class UserService {
@@ -23,9 +24,10 @@ export class UserService {
     @InjectModel('EventOrganizer') private eventOrganizerModel: Model<EventOrganizerUser>,
 
     private authService: AuthService,
+    private storageService: StorageService,
   ) {}
 
-  async find(filter, select?: string, accountType?: ROLE): Promise<User[]> {
+  async find(filter, select?: string, accountType?: Role): Promise<User[]> {
     let model: Model<User> | Model<CustomerUser> | Model<EventOrganizerUser>;
     switch (accountType) {
       case ROLE.CUSTOMER:
@@ -41,7 +43,7 @@ export class UserService {
     return await (model as Model<User>).find(filter).select(select);
   }
 
-  async findById(id: Types.ObjectId | string, select?: string): Promise<User> {
+  async findById(id: Types.ObjectId | string, select?: string): Promise<User | EventOrganizerUser | CustomerUser> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid Id');
     }
@@ -63,26 +65,64 @@ export class UserService {
     return user;
   }
 
-  async registerCustomerUser(user: CreateCustomerUserDTO): Promise<SuccessfulUserModificationDTO> {
-    // Check duplicate phone number
+  async findUserByPhoneNumberOrEmail(phone: string, email: string) {
     const existingUser = await this.userModel.findOne({
-      $or: [{ phoneNumber: user.phoneNumber }, { email: user.email }],
+      $or: [{ phoneNumber: phone }, { email: email }],
     });
+
+    return existingUser;
+  }
+
+  async registerCustomerUser(
+    user: CreateCustomerUserDTO,
+    profileImage?: Express.Multer.File,
+  ): Promise<SuccessfulUserModificationDTO> {
+    // Check duplicate phone number
+    const existingUser = await this.findUserByPhoneNumberOrEmail(user.phoneNumber, user.email);
     if (existingUser) throw new DuplicateElementException('Phone number or email');
 
-    const userInfo = { ...user, accountType: ROLE.CUSTOMER };
+    const userInfo = {
+      ...user,
+      accountType: ROLE.CUSTOMER as Role,
+      verificationStatus: VerificationStatus.NOT_VERIFIED,
+    };
     delete userInfo.password;
+
     try {
       // Create a new user
       const newUser = new this.customerModel(user);
+      newUser.accountType = ROLE.CUSTOMER as Role;
+      newUser.verificationStatus = VerificationStatus.NOT_VERIFIED;
       newUser.password = await this.authService.hashPassword(user.password);
-      const [createdUser, jwt] = [await newUser.save(), this.authService.generateJWT(newUser._id, ROLE.CUSTOMER)];
-      await createdUser.save();
+
+      if (profileImage) {
+        const uploadProfileImageRes = await this.storageService.saveFiles([
+          {
+            path: `profile/${newUser._id}/profileImage`,
+            contentType: profileImage.mimetype,
+            media: profileImage.buffer,
+            metadata: undefined,
+          },
+        ]);
+        if (uploadProfileImageRes.success) {
+          const profileImageURL = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/profile/${newUser._id}/profileImage`;
+          userInfo.profileImage = profileImageURL;
+          newUser.profileImage = profileImageURL;
+        }
+      }
+
+      const [createdUser, jwt] = [
+        await newUser.save(),
+        this.authService.generateJWT(newUser._id, ROLE.CUSTOMER as Role),
+      ];
+
+      delete createdUser.password;
+
       return {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
         jwt,
-        user: userInfo,
+        user: createdUser,
       };
     } catch (err) {
       if (err.code === 11000) {
@@ -99,29 +139,52 @@ export class UserService {
     }
   }
 
-  async registerEventOrganizerUser(user: CreateEventOrganizerUserDTO): Promise<SuccessfulUserModificationDTO> {
+  async registerEventOrganizerUser(user: CreateEventOrganizerUserDTO, profileImage?: Express.Multer.File) {
     // Check duplicate phone number
-    const existingUser = await this.userModel.findOne({
-      $or: [{ phoneNumber: user.phoneNumber }, { email: user.email }],
-    });
+    const existingUser = await this.findUserByPhoneNumberOrEmail(user.phoneNumber, user.email);
     if (existingUser) throw new DuplicateElementException('Phone number or email');
 
-    const userInfo = { ...user, accountType: ROLE.EVENT_ORGANIZER };
+    const userInfo = {
+      ...user,
+      accountType: ROLE.EVENT_ORGANIZER as Role,
+      verificationStatus: VerificationStatus.NOT_VERIFIED,
+    };
     delete userInfo.password;
+
     try {
       // Create a new user
       const newUser = new this.eventOrganizerModel(user);
+      newUser.verificationStatus = VerificationStatus.NOT_VERIFIED;
       newUser.password = await this.authService.hashPassword(user.password);
+
+      if (profileImage) {
+        const uploadProfileImageRes = await this.storageService.saveFiles([
+          {
+            path: `profile/${newUser._id}/profileImage`,
+            contentType: profileImage.mimetype,
+            media: profileImage.buffer,
+            metadata: undefined,
+          },
+        ]);
+        if (uploadProfileImageRes.success) {
+          const profileImageURL = `https://storage.googleapis.com/nft-generator-microservice-bucket-test/profile/${newUser._id}/profileImage`;
+          userInfo.profileImage = profileImageURL;
+          newUser.profileImage = profileImageURL;
+        }
+      }
+
       const [createdUser, jwt] = [
         await newUser.save(),
-        this.authService.generateJWT(newUser._id, ROLE.EVENT_ORGANIZER),
+        this.authService.generateJWT(newUser._id, ROLE.EVENT_ORGANIZER as Role),
       ];
-      await createdUser.save();
+
+      delete createdUser.password;
+
       return {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
         jwt,
-        user: userInfo,
+        user: createdUser,
       };
     } catch (err) {
       if (err.code === 11000) {
@@ -135,6 +198,7 @@ export class UserService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      throwBadRequestError(err);
     }
   }
 

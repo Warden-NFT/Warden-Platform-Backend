@@ -1,10 +1,21 @@
 import { TicketsMetadata } from 'src/event/interfaces/event.interface';
+import { PriceDTO } from '../dto/ticket.dto';
 
 export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
 
-export interface TicketSet {
+export const TicketTypeKeys = ['general', 'vip', 'reservedSeat'];
+
+export type Currency = 'ETH' | 'MATIC';
+
+export type TicketGenerationMode = 'complete' | 'layer';
+
+export interface TicketCollection {
   _id?: string;
-  tickets: Ticket[];
+  tickets: {
+    general: Ticket[];
+    vip: VIPTicket[];
+    reservedSeat: Ticket[];
+  };
   createdDate: string;
   ownerId: string;
   ownerAddress: string;
@@ -28,6 +39,10 @@ export interface TicketSet {
     };
   };
   royaltyFee: number;
+  enableResale: boolean;
+  currency: Currency;
+  ticketQuota: TicketQuota;
+  generationMethod: TicketGenerationMode;
 }
 
 export interface Ticket {
@@ -39,12 +54,20 @@ export interface Ticket {
   ticketMetadata: TicketsMetadata[];
   ownerAddress: string;
   ownerHistory: string[];
+  ticketType: TicketType;
+  price: PriceDTO;
 }
 
-export interface VIPTicked extends Ticket {
+export interface VIPTicket extends Ticket {
   benefits: string; // placeholder
 }
 
 export interface ReservedSeatDTO extends Ticket {
   ticketSeat: string;
+}
+
+export interface TicketQuota {
+  general?: number;
+  vip?: number;
+  reservedSeat?: number;
 }
