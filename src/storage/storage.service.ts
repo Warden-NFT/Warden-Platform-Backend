@@ -13,8 +13,8 @@ export class StorageService {
     this.storage = new Storage({
       projectId: StorageConfig.projectId,
       credentials: {
-        client_email: StorageConfig.client_email,
-        private_key: StorageConfig.private_key,
+        client_email: StorageConfig.client_email.replace(/\\n/g, '\n'),
+        private_key: StorageConfig.private_key.replace(/\\n/g, '\n'),
       },
     });
 
