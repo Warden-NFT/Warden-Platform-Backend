@@ -1,4 +1,4 @@
-FROM node:16 AS build
+FROM node:16.18.0 AS build
 
 WORKDIR /usr/src/app
 
@@ -10,7 +10,7 @@ RUN yarn
 COPY . .
 RUN yarn build
 
-FROM node:16
+FROM node:16.18.0
 
 ENV NODE_ENV production
 WORKDIR /usr/src/app

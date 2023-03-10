@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from 'src/auth/jwt.guard';
 import { EventService } from 'src/event/event.service';
 import {
@@ -12,6 +12,7 @@ import {
 } from './dto/market.dto';
 import { MarketService } from './market.service';
 
+@ApiTags('Market')
 @Controller('market')
 export class MarketController {
   constructor(private marketService: MarketService, private eventService: EventService) {}
