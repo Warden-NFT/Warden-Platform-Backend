@@ -21,6 +21,10 @@ export class StorageService {
     this.bucket = StorageConfig.mediaBucket;
   }
 
+  removeFileExtension(filename: string) {
+    return filename.split('.').slice(0, -1).join('.');
+  }
+
   async save(path: string, contentType: string, media: Buffer, metadata?: StoredFileMetadata[] | undefined) {
     if (!media) {
       throw new HttpException(
@@ -61,7 +65,7 @@ export class StorageService {
     }
 
     files.map(async (file) => {
-      await this.save(file.path, file.contentType, file.media, file.metadata);
+      await this.save(this.removeFileExtension(file.path), file.contentType, file.media, file.metadata);
     });
 
     return { success: true };
