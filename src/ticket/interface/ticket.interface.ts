@@ -53,7 +53,6 @@ export interface Ticket {
   name: string;
   description: string;
   ticketMetadata: TicketsMetadata[];
-  ownerAddress: string;
   ownerHistory: string[];
   ticketType: TicketType;
   price: PriceDTO;
