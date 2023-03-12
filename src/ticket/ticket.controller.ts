@@ -79,10 +79,12 @@ export class TicketController {
   @Get('/metadata')
   @ApiOkResponse({ type: TicketsMetadataDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  async getTicketMetadat(@Query('path') _path: string) {
+  async getTicketMetadat(@Query('path') _path: string, @Query('ticketId') ticketId: string) {
     const path = _path.split(',').reduce((prev, curr) => `${prev}/${curr}`);
-    const { metadata } = await this.storageService.getMetadata(`media/${path}`);
-    return metadata;
+    const eventId = path.split('/')[0];
+    const ticket = await this.ticketService.getTicketByID(eventId, ticketId);
+    const { attributes, description, image, name } = ticket.ticketMetadata[0];
+    return { attributes, description, image, name };
   }
 
   @Get('/user/:walletAddress')
