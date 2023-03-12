@@ -73,6 +73,10 @@ export class TicketDTO {
   _id?: string;
 
   @ApiProperty()
+  @IsString()
+  smartContractTicketId?: string;
+
+  @ApiProperty()
   @IsDate()
   dateIssued: Date;
 
@@ -138,10 +142,6 @@ export class TicketCollectionDTO {
   @ApiProperty()
   @IsString()
   _id?: string;
-
-  @ApiProperty()
-  @IsString()
-  smartContractTicketId?: string;
 
   @ApiProperty({ type: TicketTypesDTO })
   tickets: {

@@ -11,7 +11,6 @@ export type TicketGenerationMode = 'complete' | 'layer';
 
 export interface TicketCollection {
   _id?: string;
-  smartContractTicketId?: number;
   tickets: {
     general: Ticket[];
     vip: VIPTicket[];
@@ -48,6 +47,7 @@ export interface TicketCollection {
 
 export interface Ticket {
   _id?: string;
+  smartContractTicketId?: number;
   dateIssued: Date;
   ticketNumber: number;
   name: string;

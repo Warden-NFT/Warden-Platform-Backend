@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 export const TicketSchema = new mongoose.Schema({
+  smartContractTicketId: {
+    type: Number,
+    required: false,
+  },
   dateIssued: {
     type: String,
     required: true,
@@ -54,10 +58,6 @@ export const TicketSchema = new mongoose.Schema({
 });
 
 export const TicketCollectionSchema = new mongoose.Schema({
-  smartContractTicketId: {
-    type: Number,
-    required: false,
-  },
   tickets: {
     general: [TicketSchema],
     vip: [TicketSchema],
