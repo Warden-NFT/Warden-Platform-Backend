@@ -326,7 +326,7 @@ export class TicketService {
   ): Promise<TicketTransactionPermissionDTO> {
     try {
       const _ticket = await this.getTicketByID(eventId, ticketId);
-      if (_ticket.ownerAddress === walletAddress) {
+      if (_ticket.ownerHistory.at(-1) === walletAddress) {
         return { allowed: false, reason: 'You cannot purchase your own ticket' };
       }
 
@@ -372,7 +372,6 @@ export class TicketService {
       const _ticket = await this.getTicketByID(eventId, ticketId);
       const _event = await this.eventService.getEvent(eventId);
       _ticket.ownerHistory.push(walletAddress);
-      _ticket.ownerAddress = walletAddress;
       await this.updateTicket(_ticket, ticketCollectionId, userId, true);
     } catch (error) {
       throwBadRequestError(error);
@@ -388,11 +387,10 @@ export class TicketService {
     userId: string,
   ): Promise<UpdateTicketOwnershipDTO> {
     const _ticket = await this.getTicketByID(eventId, ticketId);
-    if (_ticket.ownerAddress !== walletAddress) {
+    if (_ticket.ownerHistory.at(-1) !== walletAddress) {
       throw new ForbiddenException('You can only sell your own ticket');
     }
     _ticket.ownerHistory.push(walletAddress);
-    _ticket.ownerAddress = walletAddress;
     await this.updateTicket(_ticket, ticketCollectionId, userId);
     return {
       success: true,

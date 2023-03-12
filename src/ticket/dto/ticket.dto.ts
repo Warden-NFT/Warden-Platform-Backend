@@ -74,7 +74,7 @@ export class TicketDTO {
 
   @ApiProperty()
   @IsString()
-  smartContractTicketId?: string;
+  smartContractTicketId?: number;
 
   @ApiProperty()
   @IsDate()
@@ -110,7 +110,7 @@ export class TicketDTO {
 export class VIPTicketDTO extends TicketDTO {
   @ApiProperty()
   @IsString()
-  benefits: string; // placeholder
+  benefits?: string; // placeholder
 }
 
 export class ReservedSeatDTO extends TicketDTO {
