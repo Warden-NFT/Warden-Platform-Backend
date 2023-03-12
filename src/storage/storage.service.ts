@@ -22,7 +22,9 @@ export class StorageService {
   }
 
   removeFileExtension(filename: string) {
-    return filename.split('.').slice(0, -1).join('.');
+    const filenameOnly = filename.split('.').slice(0, -1).join('.');
+    if (filenameOnly.length === 0) return filename;
+    return filenameOnly;
   }
 
   async save(path: string, contentType: string, media: Buffer, metadata?: StoredFileMetadata[] | undefined) {

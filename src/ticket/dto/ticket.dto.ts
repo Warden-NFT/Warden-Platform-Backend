@@ -226,9 +226,21 @@ export class UpdateTicketDTO {
   ticketCollectionId: string;
 }
 
+@Expose()
 export class TicketTransactionDTO {
+  @ApiProperty()
+  @IsString()
   walletAddress: `0x${string}`;
+
+  @ApiProperty()
+  @IsString()
   eventId: string;
+
+  @ApiProperty()
+  @IsString()
   ticketCollectionId: string;
+
+  @ApiProperty()
+  @IsString()
   ticketId: string;
 }
