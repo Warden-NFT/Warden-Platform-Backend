@@ -81,6 +81,7 @@ export class TicketController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   async getTicketMetadat(@Query('path') _path: string, @Query('ticketId') ticketId: string) {
     const path = _path.split(',').reduce((prev, curr) => `${prev}/${curr}`);
+    // the path is in the format of <eventId>/<ticketName>
     const eventId = path.split('/')[0];
     const ticket = await this.ticketService.getTicketByID(eventId, ticketId);
     const { attributes, description, image, name } = ticket.ticketMetadata[0];
