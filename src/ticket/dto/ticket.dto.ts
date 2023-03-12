@@ -139,6 +139,10 @@ export class TicketCollectionDTO {
   @IsString()
   _id?: string;
 
+  @ApiProperty()
+  @IsString()
+  smartContractTicketId?: string;
+
   @ApiProperty({ type: TicketTypesDTO })
   tickets: {
     genreralTickets: TicketDTO[];
@@ -222,9 +226,21 @@ export class UpdateTicketDTO {
   ticketCollectionId: string;
 }
 
+@Expose()
 export class TicketTransactionDTO {
+  @ApiProperty()
+  @IsString()
   walletAddress: `0x${string}`;
+
+  @ApiProperty()
+  @IsString()
   eventId: string;
+
+  @ApiProperty()
+  @IsString()
   ticketCollectionId: string;
+
+  @ApiProperty()
+  @IsString()
   ticketId: string;
 }
