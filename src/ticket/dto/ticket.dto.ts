@@ -139,6 +139,10 @@ export class TicketCollectionDTO {
   @IsString()
   _id?: string;
 
+  @ApiProperty()
+  @IsString()
+  smartContractTicketId?: string;
+
   @ApiProperty({ type: TicketTypesDTO })
   tickets: {
     genreralTickets: TicketDTO[];
