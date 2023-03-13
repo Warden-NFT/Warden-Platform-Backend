@@ -36,6 +36,7 @@ import {
   updateTicketCollectionImagesDTO,
   VIPTicketDTO,
   TicketTransactionDTO,
+  TicketUtilizeDTO,
 } from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection } from './interface/ticket.interface';
@@ -178,5 +179,14 @@ export class TicketController {
       dto.ticketId,
       req.user.uid,
     );
+  }
+
+  @Put('/utilize')
+  @ApiOkResponse({ type: UpdateTicketOwnershipDTO })
+  @ApiForbiddenResponse({ description: 'You do not have sufficient permission to admit user' })
+  @ApiBadRequestResponse({ description: 'This ticket has been utilized' })
+  @UseGuards(EventOrganizerGuard)
+  async ticketAdmission(@Body() dto: TicketUtilizeDTO, @Req() req) {
+    return await this.ticketService.utilizeTicket(dto.eventId, dto.ticketId, dto.ownerId);
   }
 }

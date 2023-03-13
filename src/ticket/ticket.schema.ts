@@ -55,6 +55,10 @@ export const TicketSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  hasUsed: {
+    type: Boolean,
+    required: true,
+  },
 });
 
 export const TicketCollectionSchema = new mongoose.Schema({

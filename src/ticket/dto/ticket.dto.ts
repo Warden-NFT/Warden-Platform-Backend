@@ -105,6 +105,9 @@ export class TicketDTO {
 
   @ApiProperty({ type: PriceDTO })
   price: PriceDTO;
+
+  @ApiProperty()
+  hasUsed: boolean;
 }
 
 export class VIPTicketDTO extends TicketDTO {
@@ -243,4 +246,19 @@ export class TicketTransactionDTO {
   @ApiProperty()
   @IsString()
   ticketId: string;
+}
+
+@Expose()
+export class TicketUtilizeDTO {
+  @ApiProperty()
+  @IsString()
+  eventId: string;
+
+  @ApiProperty()
+  @IsString()
+  ticketId: string;
+
+  @ApiProperty()
+  @IsString()
+  ownerId: string;
 }

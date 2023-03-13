@@ -19,7 +19,6 @@ import { DeleteResponseDTO } from '../utils/httpResponse.dto';
 import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection, TicketTypeKeys } from './interface/ticket.interface';
-import { Event } from 'src/event/interfaces/event.interface';
 
 @Injectable()
 export class TicketService {
@@ -395,5 +394,20 @@ export class TicketService {
     return {
       success: true,
     };
+  }
+
+  // Update ticket's hasUsed status
+  async utilizeTicket(eventId: string, ticketId: string, ownerId: string) {
+    const ticket = await this.getTicketByID(eventId, ticketId);
+    const event = await this.eventService.getEvent(eventId);
+
+    const _ticket = { ...ticket };
+    if (_ticket.hasUsed) {
+      throw new ForbiddenException('This ticket has been utilized');
+    } else {
+      _ticket.hasUsed = true;
+    }
+
+    await this.updateTicket(ticket, event.ticketCollectionId, ownerId, false);
   }
 }
