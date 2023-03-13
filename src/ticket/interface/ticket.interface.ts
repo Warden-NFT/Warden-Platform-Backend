@@ -43,6 +43,7 @@ export interface TicketCollection {
   currency: Currency;
   ticketQuota: TicketQuota;
   generationMethod: TicketGenerationMode;
+  hasUsed: boolean;
 }
 
 export interface Ticket {
@@ -56,6 +57,7 @@ export interface Ticket {
   ownerHistory: string[];
   ticketType: TicketType;
   price: PriceDTO;
+  hasUsed: boolean;
 }
 
 export interface VIPTicket extends Ticket {
