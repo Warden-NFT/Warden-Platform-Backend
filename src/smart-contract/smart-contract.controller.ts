@@ -28,7 +28,6 @@ export class SmartContractController {
   @Get('abi')
   @ApiOkResponse({ type: SmartContractAbiDTO })
   @ApiNotFoundResponse({ description: 'ABI not found' })
-  @UseGuards(JwtAuthGuard)
   async getSmartContractABI() {
     return this.smartContractService.getSmartContractABI();
   }
@@ -44,7 +43,6 @@ export class SmartContractController {
   @Get('bytecode')
   @ApiOkResponse({ type: SmartContractBytecodeDTO })
   @ApiNotFoundResponse({ description: 'ABI not found' })
-  @UseGuards(JwtAuthGuard)
   async getSmartContractBytecode() {
     return this.smartContractService.getSmartContractBytecode();
   }
