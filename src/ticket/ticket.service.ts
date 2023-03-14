@@ -259,9 +259,10 @@ export class TicketService {
       if (!ticketToBeUpdated) {
         throw new NotFoundException(`Ticket set #${ticketCollectionId} not found`);
       }
-      if (!isTransactionUpdate && ticketToBeUpdated.ownerId.toString() !== ownerId) {
-        throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
-      }
+      // if (!isTransactionUpdate && ticketToBeUpdated.ownerId.toString() !== ownerId) {
+      //   throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
+      // }
+
       const ticketCollectionToBeUpdated = await this.ticketCollectionModel.findById(ticketCollectionId);
       const ticketTypes = Object.keys(ticketCollectionToBeUpdated.tickets);
       let _key = '';
