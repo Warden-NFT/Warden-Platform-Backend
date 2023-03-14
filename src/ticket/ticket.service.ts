@@ -410,7 +410,7 @@ export class TicketService {
     const event = await this.eventService.getEvent(eventId);
 
     if (_ticket.hasUsed) {
-      throw new ForbiddenException('This ticket has been utilized');
+      throw new BadRequestException('This ticket has been utilized');
     } else {
       _ticket.hasUsed = true;
     }
@@ -425,7 +425,7 @@ export class TicketService {
     const user = await this.userService.getUserInfo(userId);
 
     if (ticket.ownerHistory.at(-1) !== address) {
-      throw new ForbiddenException('This ticket is not belong to this wallet address');
+      throw new BadRequestException('This ticket is not belong to this wallet address');
     }
 
     return { event, ticket, user };
