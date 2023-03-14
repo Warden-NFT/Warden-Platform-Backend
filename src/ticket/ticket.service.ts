@@ -259,6 +259,8 @@ export class TicketService {
       if (!ticketToBeUpdated) {
         throw new NotFoundException(`Ticket set #${ticketCollectionId} not found`);
       }
+
+      //TODO: Debug this statement
       // if (!isTransactionUpdate && ticketToBeUpdated.ownerId.toString() !== ownerId) {
       //   throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
       // }
