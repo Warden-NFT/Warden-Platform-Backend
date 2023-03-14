@@ -7,6 +7,7 @@ import { EventSchema } from './event.schema';
 import { StorageModule } from 'src/storage/storage.module';
 import { UserSchema } from 'src/user/user.schema';
 import { UserModule } from 'src/user/user.module';
+import { TicketModule } from 'src/ticket/ticket.module';
 
 @Module({
   imports: [
