@@ -406,10 +406,9 @@ export class TicketService {
 
   // Update ticket's hasUsed status
   async utilizeTicket(eventId: string, ticketId: string, ownerId: string) {
-    const ticket = await this.getTicketByID(eventId, ticketId);
+    const _ticket = await this.getTicketByID(eventId, ticketId);
     const event = await this.eventService.getEvent(eventId);
 
-    const _ticket = { ...ticket };
     if (_ticket.hasUsed) {
       throw new ForbiddenException('This ticket has been utilized');
     } else {
