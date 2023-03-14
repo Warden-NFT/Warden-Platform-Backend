@@ -8,6 +8,7 @@ import { StorageModule } from 'src/storage/storage.module';
 import { EventModule } from 'src/event/event.module';
 import { EventService } from 'src/event/event.service';
 import { EventSchema } from 'src/event/event.schema';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { EventSchema } from 'src/event/event.schema';
       { name: 'Event', schema: EventSchema, collection: 'events' },
     ]),
     EventModule,
+    UserModule,
   ],
   providers: [TicketService, EventService],
   controllers: [TicketController],

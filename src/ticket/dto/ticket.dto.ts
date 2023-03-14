@@ -260,5 +260,9 @@ export class TicketUtilizeDTO {
 
   @ApiProperty()
   @IsString()
-  ownerId: string;
+  userId: string;
+
+  @ApiProperty()
+  @IsString()
+  walletAddress: string;
 }
