@@ -38,7 +38,12 @@ import {
   TicketTransactionDTO,
   TicketUtilizeDTO,
 } from './dto/ticket.dto';
-import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
+import {
+  AdmissionDetailDTO,
+  MyTicketsDTO,
+  TicketTransactionPermissionDTO,
+  UpdateTicketOwnershipDTO,
+} from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection } from './interface/ticket.interface';
 import { TicketService } from './ticket.service';
 
@@ -187,6 +192,14 @@ export class TicketController {
   @ApiBadRequestResponse({ description: 'This ticket has been utilized' })
   @UseGuards(EventOrganizerGuard)
   async ticketAdmission(@Body() dto: TicketUtilizeDTO, @Req() req) {
-    return await this.ticketService.utilizeTicket(dto.eventId, dto.ticketId, dto.ownerId);
+    return await this.ticketService.utilizeTicket(dto.eventId, dto.ticketId, dto.userId);
+  }
+
+  @Get('/admission/check')
+  @ApiOkResponse({ type: AdmissionDetailDTO })
+  @ApiForbiddenResponse({ description: 'This ticket is not belong to this wallet address' })
+  @UseGuards(EventOrganizerGuard)
+  async checkUserAdmission(@Query() dto: TicketUtilizeDTO, @Req() req) {
+    return await this.ticketService.getEventApplicantInfo(dto.eventId, dto.ticketId, dto.userId, dto.walletAddress);
   }
 }

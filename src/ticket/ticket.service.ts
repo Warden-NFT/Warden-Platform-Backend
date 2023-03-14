@@ -19,10 +19,15 @@ import { DeleteResponseDTO } from '../utils/httpResponse.dto';
 import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection, TicketTypeKeys } from './interface/ticket.interface';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class TicketService {
-  constructor(private storageService: StorageService, private eventService: EventService) {}
+  constructor(
+    private storageService: StorageService,
+    private eventService: EventService,
+    private userService: UserService,
+  ) {}
   @InjectModel('TicketCollection') private ticketCollectionModel: Model<TicketCollection>;
 
   // Create a record of tickets generated
@@ -411,6 +416,19 @@ export class TicketService {
       _ticket.hasUsed = true;
     }
 
-    await this.updateTicket(ticket, event.ticketCollectionId, ownerId, false);
+    await this.updateTicket(_ticket, event.ticketCollectionId, ownerId, false);
+    return { success: true };
+  }
+
+  async getEventApplicantInfo(eventId: string, ticketId: string, userId: string, address: string) {
+    const event = await this.eventService.getEvent(eventId);
+    const ticket = await this.getTicketByID(eventId, ticketId);
+    const user = await this.userService.getUserInfo(userId);
+
+    if (ticket.ownerHistory.at(-1) !== address) {
+      throw new ForbiddenException('This ticket is not belong to this wallet address');
+    }
+
+    return { event, ticket, user };
   }
 }
