@@ -189,7 +189,6 @@ export class TicketController {
   @Put('/utilize')
   @ApiOkResponse({ type: UpdateTicketOwnershipDTO })
   @ApiForbiddenResponse({ description: 'You do not have sufficient permission to admit user' })
-  @ApiBadRequestResponse({ description: 'This ticket has been utilized' })
   @UseGuards(EventOrganizerGuard)
   async ticketAdmission(@Body() dto: TicketUtilizeDTO, @Req() req) {
     return await this.ticketService.utilizeTicket(dto.eventId, dto.ticketId, dto.userId);
