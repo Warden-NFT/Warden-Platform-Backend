@@ -266,3 +266,18 @@ export class TicketUtilizeDTO {
   @IsString()
   walletAddress: string;
 }
+
+@Expose()
+export class TicketQuotaCheckResultDTO {
+  @ApiProperty()
+  @IsNumber()
+  ownedTicketsCount: number;
+
+  @ApiProperty()
+  @IsNumber()
+  quota: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  allowPurchase: boolean;
+}
