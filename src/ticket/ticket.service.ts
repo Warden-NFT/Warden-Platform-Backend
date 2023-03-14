@@ -16,9 +16,15 @@ import { MarketEventTicketPreviewsDTO } from 'src/market/dto/market.dto';
 import { StorageService } from '../storage/storage.service';
 import { throwBadRequestError } from '../utils/httpError';
 import { DeleteResponseDTO } from '../utils/httpResponse.dto';
-import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './dto/ticket.dto';
+import {
+  TicketDTO,
+  TicketCollectionDTO,
+  updateTicketCollectionImagesDTO,
+  VIPTicketDTO,
+  TicketQuotaCheckResultDTO,
+} from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
-import { Ticket, TicketCollection, TicketTypeKeys } from './interface/ticket.interface';
+import { Ticket, TicketCollection, TicketTypeKeyName, TicketTypeKeys } from './interface/ticket.interface';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -337,6 +343,15 @@ export class TicketService {
         return { allowed: false, reason: 'You cannot purchase your own ticket' };
       }
 
+      const _ticketQuotaCheckResult = await this.checkTicketPurchaseQuota(
+        walletAddress,
+        ticketCollectionId,
+        TicketTypeKeyName[_ticket.ticketType],
+      );
+      if (!_ticketQuotaCheckResult.allowPurchase) {
+        return { allowed: false, reason: 'Maximum ticket quota reached' };
+      }
+
       const _event = await this.eventService.getEvent(eventId);
       if (moment(new Date(_event.startDate)).add(-7, 'hours') < moment()) {
         return { allowed: false, reason: 'The event has already begun' };
@@ -397,7 +412,7 @@ export class TicketService {
     if (_ticket.ownerHistory.at(-1) !== walletAddress) {
       throw new ForbiddenException('You can only sell your own ticket');
     }
-    _ticket.ownerHistory.push(walletAddress);
+    _ticket.ownerHistory.push(_ticket.ownerHistory[0]);
     await this.updateTicket(_ticket, ticketCollectionId, userId);
     return {
       success: true,
@@ -427,5 +442,37 @@ export class TicketService {
     }
 
     return { event, ticket, user };
+  }
+
+  // Check the user's ticket purchase quota
+  async checkTicketPurchaseQuota(
+    address: string,
+    ticketCollectionId: string,
+    ticketType: string,
+  ): Promise<TicketQuotaCheckResultDTO> {
+    const ownedTicketsResponse: MyTicketsDTO = await this.getTicketsOfUser(address);
+    const { myTickets, myTicketListing } = ownedTicketsResponse;
+
+    const ticketCollection: TicketCollection = await this.getTicketCollectionByID(ticketCollectionId);
+    const allTickets = [
+      ...ticketCollection.tickets.general.map((ticket) => ticket._id.toString()),
+      ...ticketCollection.tickets.vip.map((ticket) => ticket._id.toString()),
+      ...ticketCollection.tickets.reservedSeat.map((ticket) => ticket._id.toString()),
+    ];
+    const _myTickets = myTickets.filter((ticket) => {
+      return allTickets.includes(ticket._id.toString());
+    });
+    const _myTicketListing = myTicketListing.filter((ticket) => {
+      return allTickets.includes(ticket._id.toString());
+    });
+
+    const ownedTicketsCount = _myTickets.length + _myTicketListing.length;
+    const quota = ticketCollection.ticketQuota[ticketType];
+
+    return {
+      ownedTicketsCount,
+      quota,
+      allowPurchase: ownedTicketsCount < quota,
+    };
   }
 }

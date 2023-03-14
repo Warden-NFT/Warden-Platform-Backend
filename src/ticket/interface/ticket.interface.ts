@@ -5,6 +5,12 @@ export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';
 
 export const TicketTypeKeys = ['general', 'vip', 'reservedSeat'];
 
+export const TicketTypeKeyName = {
+  GENERAL: 'general',
+  VIP: 'vip',
+  RESERVED_SEAT: 'reservedSeat',
+};
+
 export type Currency = 'ETH' | 'MATIC';
 
 export type TicketGenerationMode = 'complete' | 'layer';

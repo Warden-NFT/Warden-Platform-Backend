@@ -37,6 +37,7 @@ import {
   VIPTicketDTO,
   TicketTransactionDTO,
   TicketUtilizeDTO,
+  TicketQuotaCheckResultDTO,
 } from './dto/ticket.dto';
 import {
   AdmissionDetailDTO,
@@ -200,5 +201,17 @@ export class TicketController {
   @UseGuards(EventOrganizerGuard)
   async checkUserAdmission(@Query() dto: TicketUtilizeDTO, @Req() req) {
     return await this.ticketService.getEventApplicantInfo(dto.eventId, dto.ticketId, dto.userId, dto.walletAddress);
+  }
+
+  @Get('/quota/check')
+  @ApiOkResponse({ type: TicketQuotaCheckResultDTO })
+  @ApiBadRequestResponse({ description: 'Unable to check for ticket quota for this user' })
+  @UseGuards(JwtAuthGuard)
+  async checkTicketPurchaseQuota(
+    @Query('address') address: string,
+    @Query('ticketCollectionId') ticketCollectionId: string,
+    @Query('ticketType') ticketType: string,
+  ) {
+    return await this.ticketService.checkTicketPurchaseQuota(address, ticketCollectionId, ticketType);
   }
 }
