@@ -409,9 +409,7 @@ export class TicketService {
     const _ticket = await this.getTicketByID(eventId, ticketId);
     const event = await this.eventService.getEvent(eventId);
 
-    if (_ticket.hasUsed) {
-      throw new BadRequestException('This ticket has been utilized');
-    } else {
+    if (!_ticket.hasUsed) {
       _ticket.hasUsed = true;
     }
 
