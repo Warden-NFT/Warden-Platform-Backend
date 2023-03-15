@@ -129,6 +129,25 @@ export class TicketQuotaDTO {
 }
 
 @Expose()
+export class ResaleTicketPurchasePermission {
+  @ApiProperty()
+  @IsString()
+  address: string;
+
+  @ApiProperty()
+  @IsString()
+  ticketCollectionId: string;
+
+  @ApiProperty()
+  @IsString()
+  ticketId: string;
+
+  @ApiProperty()
+  @IsNumber()
+  smartContractTicketId: number;
+}
+
+@Expose()
 export class TicketTypesDTO {
   @ApiProperty({ type: [TicketDTO] })
   genreralTickets: TicketDTO[];
@@ -212,6 +231,9 @@ export class TicketCollectionDTO {
   @ApiProperty()
   @IsString()
   generationMethod: TicketGenerationMode; // new
+
+  @ApiProperty({ type: [ResaleTicketPurchasePermission] })
+  resaleTicketPurchasePermission: ResaleTicketPurchasePermission[];
 }
 
 export class updateTicketCollectionImagesDTO extends MultipleMediaUploadPayloadDTO {
@@ -280,4 +302,15 @@ export class TicketQuotaCheckResultDTO {
   @ApiProperty()
   @IsBoolean()
   allowPurchase: boolean;
+}
+
+@Expose()
+export class RequestResaleTicketPurchasePermissionResult {
+  @ApiProperty()
+  @IsNumber()
+  success: boolean;
+
+  @ApiProperty()
+  @IsString()
+  reason?: string;
 }

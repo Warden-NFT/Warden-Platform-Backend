@@ -50,6 +50,7 @@ export interface TicketCollection {
   ticketQuota: TicketQuota;
   generationMethod: TicketGenerationMode;
   hasUsed: boolean;
+  resaleTicketPurchasePermission: ResaleTicketPurchasePermission[];
 }
 
 export interface Ticket {
@@ -78,4 +79,11 @@ export interface TicketQuota {
   general?: number;
   vip?: number;
   reservedSeat?: number;
+}
+
+export interface ResaleTicketPurchasePermission {
+  address: string;
+  ticketCollectionId: string;
+  ticketId: string;
+  smartContractTicketId: number;
 }
