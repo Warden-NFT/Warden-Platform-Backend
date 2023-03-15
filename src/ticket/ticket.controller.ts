@@ -38,6 +38,7 @@ import {
   TicketTransactionDTO,
   TicketUtilizeDTO,
   TicketQuotaCheckResultDTO,
+  ResaleTicketPurchasePermission,
 } from './dto/ticket.dto';
 import {
   AdmissionDetailDTO,
@@ -213,5 +214,12 @@ export class TicketController {
     @Query('ticketType') ticketType: string,
   ) {
     return await this.ticketService.checkTicketPurchaseQuota(address, ticketCollectionId, ticketType);
+  }
+
+  @Post('/permission/buy-resale')
+  @ApiOkResponse({ type: ResaleTicketPurchasePermission })
+  @UseGuards(JwtAuthGuard)
+  async sendResaleTicketPurchaseRequest(@Body() dto: ResaleTicketPurchasePermission) {
+    return this.ticketService.sendResaleTicketPurchaseRequest(dto);
   }
 }

@@ -173,4 +173,24 @@ export const TicketCollectionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  resaleTicketPurchasePermission: [
+    {
+      address: {
+        type: String,
+        required: true,
+      },
+      ticketCollectionId: {
+        type: String,
+        required: true,
+      },
+      ticketId: {
+        type: String,
+        required: true,
+      },
+      smartContractTicketId: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
 });

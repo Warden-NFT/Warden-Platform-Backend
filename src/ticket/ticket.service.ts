@@ -22,6 +22,8 @@ import {
   updateTicketCollectionImagesDTO,
   VIPTicketDTO,
   TicketQuotaCheckResultDTO,
+  ResaleTicketPurchasePermission,
+  RequestResaleTicketPurchasePermissionResult,
 } from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection, TicketTypeKeyName, TicketTypeKeys } from './interface/ticket.interface';
@@ -474,5 +476,33 @@ export class TicketService {
       quota,
       allowPurchase: ownedTicketsCount < quota,
     };
+  }
+
+  // Request purchase ticket from event
+  // Save the list of addresses that wants the permission to buy a resale ticket in an array
+  async sendResaleTicketPurchaseRequest(
+    permissionRequest: ResaleTicketPurchasePermission,
+  ): Promise<RequestResaleTicketPurchasePermissionResult> {
+    try {
+      const ticketCollection = await this.ticketCollectionModel.findById(permissionRequest.ticketCollectionId);
+      if (!ticketCollection) {
+        return { success: false, reason: 'Ticket collection not found' };
+      }
+
+      const matchingPermissionRequest = ticketCollection.resaleTicketPurchasePermission.find(
+        (request) =>
+          request.address === permissionRequest.address &&
+          request.smartContractTicketId === permissionRequest.smartContractTicketId,
+      );
+      if (matchingPermissionRequest) {
+        return { success: false, reason: 'The request has already been made' };
+      }
+
+      ticketCollection.resaleTicketPurchasePermission.push(permissionRequest);
+      await ticketCollection.save();
+      return { success: true };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
   }
 }
