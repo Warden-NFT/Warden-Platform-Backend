@@ -27,22 +27,6 @@ export class UserService {
     private storageService: StorageService,
   ) {}
 
-  async find(filter, select?: string, accountType?: Role): Promise<User[]> {
-    let model: Model<User> | Model<CustomerUser> | Model<EventOrganizerUser>;
-    switch (accountType) {
-      case ROLE.CUSTOMER:
-        model = this.customerModel;
-        break;
-      case ROLE.EVENT_ORGANIZER:
-        model = this.eventOrganizerModel;
-        break;
-      default:
-        model = this.userModel;
-        break;
-    }
-    return await (model as Model<User>).find(filter).select(select);
-  }
-
   async findById(id: Types.ObjectId | string, select?: string): Promise<User | EventOrganizerUser | CustomerUser> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid Id');
