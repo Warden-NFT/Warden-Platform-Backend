@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model, Types } from 'mongoose';
-import { AuthService } from 'src/auth/auth.service';
+import { AuthService } from '../auth/auth.service';
 import {
   CreateCustomerUserDTO,
   CreateEventOrganizerUserDTO,
@@ -12,9 +12,9 @@ import {
 import { CustomerUser, EventOrganizerUser, User, Verification, VerificationStatus } from './user.interface';
 import * as bcrypt from 'bcrypt';
 import { DuplicateElementException } from './user.exception';
-import { Role, ROLE } from 'common/roles';
-import { throwBadRequestError } from 'src/utils/httpError';
-import { StorageService } from 'src/storage/storage.service';
+import { Role, ROLE } from '../../common/roles';
+import { throwBadRequestError } from '../utils/httpError';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class UserService {
