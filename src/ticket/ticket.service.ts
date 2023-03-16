@@ -22,12 +22,12 @@ import {
   updateTicketCollectionImagesDTO,
   VIPTicketDTO,
   TicketQuotaCheckResultDTO,
-  ResaleTicketPurchasePermission,
+  ResaleTicketPurchasePermissionDTO,
   RequestResaleTicketPurchasePermissionResult,
 } from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection, TicketTypeKeyName, TicketTypeKeys } from './interface/ticket.interface';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class TicketService {
@@ -481,12 +481,12 @@ export class TicketService {
   // Request purchase ticket from event
   // Save the list of addresses that wants the permission to buy a resale ticket in an array
   async sendResaleTicketPurchaseRequest(
-    permissionRequest: ResaleTicketPurchasePermission,
+    permissionRequest: ResaleTicketPurchasePermissionDTO,
   ): Promise<RequestResaleTicketPurchasePermissionResult> {
     try {
       const ticketCollection = await this.ticketCollectionModel.findById(permissionRequest.ticketCollectionId);
       if (!ticketCollection) {
-        return { success: false, reason: 'Ticket collection not found' };
+        throw new NotFoundException(`TicketCollection with ID ${permissionRequest.ticketCollectionId} not found`);
       }
 
       const matchingPermissionRequest = ticketCollection.resaleTicketPurchasePermission.find(
@@ -495,12 +495,39 @@ export class TicketService {
           request.smartContractTicketId === permissionRequest.smartContractTicketId,
       );
       if (matchingPermissionRequest) {
-        return { success: false, reason: 'The request has already been made' };
+        throw new ConflictException('The request has already been made');
       }
 
       ticketCollection.resaleTicketPurchasePermission.push(permissionRequest);
       await ticketCollection.save();
       return { success: true };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
+  // Approve the resale ticket purchase request
+  async approveResaleTicketPurchaseRequest(
+    ticketCollectionId: string,
+    permissionId: string,
+  ): Promise<ResaleTicketPurchasePermissionDTO[]> {
+    const ticketCollection = await this.ticketCollectionModel.findById(ticketCollectionId);
+    if (!ticketCollection) {
+      throw new NotFoundException(`TicketCollection with ID ${ticketCollectionId} not found`);
+    }
+
+    // Finds the matching request and set approved to true
+    ticketCollection.resaleTicketPurchasePermission = ticketCollection.resaleTicketPurchasePermission.map(
+      (permission: ResaleTicketPurchasePermissionDTO) => {
+        return {
+          ...permission,
+          approved: permission._id.toString() == permissionId,
+        };
+      },
+    );
+    try {
+      const updatedCollection = await ticketCollection.save();
+      return updatedCollection.resaleTicketPurchasePermission;
     } catch (error) {
       throwBadRequestError(error);
     }

@@ -191,6 +191,10 @@ export const TicketCollectionSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
+      approved: {
+        type: Boolean,
+        required: false,
+      },
     },
   ],
 });

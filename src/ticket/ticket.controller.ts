@@ -38,7 +38,8 @@ import {
   TicketTransactionDTO,
   TicketUtilizeDTO,
   TicketQuotaCheckResultDTO,
-  ResaleTicketPurchasePermission,
+  ResaleTicketPurchasePermissionDTO,
+  ApproveTicketPurchaseDTO,
 } from './dto/ticket.dto';
 import {
   AdmissionDetailDTO,
@@ -217,9 +218,20 @@ export class TicketController {
   }
 
   @Post('/permission/buy-resale')
-  @ApiOkResponse({ type: ResaleTicketPurchasePermission })
+  @ApiOkResponse({ type: ResaleTicketPurchasePermissionDTO })
+  @ApiNotFoundResponse({ description: 'TicketCollection with ID ${permissionRequest.ticketCollectionId} not found' })
+  @ApiConflictResponse({ description: 'The request has already been made' })
   @UseGuards(JwtAuthGuard)
-  async sendResaleTicketPurchaseRequest(@Body() dto: ResaleTicketPurchasePermission) {
+  async sendResaleTicketPurchaseRequest(@Body() dto: ResaleTicketPurchasePermissionDTO) {
     return this.ticketService.sendResaleTicketPurchaseRequest(dto);
+  }
+
+  @Post('/permission/approve')
+  @ApiOkResponse({ type: ResaleTicketPurchasePermissionDTO })
+  @ApiNotFoundResponse({ description: 'TicketCollection with ID ${permissionRequest.ticketCollectionId} not found' })
+  @ApiConflictResponse({ description: 'The request has already been made' })
+  @UseGuards(JwtAuthGuard)
+  async approveResaleTicketPurchaseRequest(@Body() dto: ApproveTicketPurchaseDTO) {
+    return this.ticketService.approveResaleTicketPurchaseRequest(dto.ticketCollectionId, dto.permissionId);
   }
 }
