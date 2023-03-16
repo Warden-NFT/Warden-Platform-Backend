@@ -333,4 +333,12 @@ export class TicketQuotaCheckResultDTO {
   @ApiProperty()
   @IsBoolean()
   allowPurchase: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  resalePurchaseApproved: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  resalePurchasePendingApproval: boolean;
 }

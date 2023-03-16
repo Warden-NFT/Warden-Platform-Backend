@@ -451,6 +451,7 @@ export class TicketService {
     address: string,
     ticketCollectionId: string,
     ticketType: string,
+    smartContractTicketId?: number,
   ): Promise<TicketQuotaCheckResultDTO> {
     const ownedTicketsResponse: MyTicketsDTO = await this.getTicketsOfUser(address);
     const { myTickets, myTicketListing } = ownedTicketsResponse;
@@ -471,10 +472,23 @@ export class TicketService {
     const ownedTicketsCount = _myTickets.length + _myTicketListing.length;
     const quota = ticketCollection.ticketQuota[ticketType];
 
+    // Check if there are any pending resale ticket purchase approvals
+    let resalePurchaseApproved = false;
+    let resalePurchasePendingApproval = false;
+    if (smartContractTicketId) {
+      const permissionRequest = ticketCollection.resaleTicketPurchasePermission.find((request) => {
+        return request.address === address && request.smartContractTicketId === smartContractTicketId;
+      });
+      resalePurchasePendingApproval = Boolean(permissionRequest && !Boolean(permissionRequest.approved));
+      resalePurchaseApproved = Boolean(permissionRequest && permissionRequest.approved);
+    }
+
     return {
       ownedTicketsCount,
       quota,
       allowPurchase: ownedTicketsCount < quota,
+      resalePurchaseApproved,
+      resalePurchasePendingApproval,
     };
   }
 

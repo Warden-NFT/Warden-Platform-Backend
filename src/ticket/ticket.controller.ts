@@ -213,8 +213,14 @@ export class TicketController {
     @Query('address') address: string,
     @Query('ticketCollectionId') ticketCollectionId: string,
     @Query('ticketType') ticketType: string,
+    @Query('smartContractTicketId') smartContractTicketId: string,
   ) {
-    return await this.ticketService.checkTicketPurchaseQuota(address, ticketCollectionId, ticketType);
+    return await this.ticketService.checkTicketPurchaseQuota(
+      address,
+      ticketCollectionId,
+      ticketType,
+      parseInt(smartContractTicketId),
+    );
   }
 
   @Post('/permission/buy-resale')
