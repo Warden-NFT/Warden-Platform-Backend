@@ -96,7 +96,9 @@ describe('TicketService', () => {
       } as any);
 
       const result = await ticketService.getTicketsOfUser(walletAddress);
+      console.log(result);
       const expectedMyTickets = [ticketCollection.tickets.general[0], ticketCollection.tickets.reservedSeat[0]];
+      console.log(expectedMyTickets);
       const expectedMyTicketListing = [ticketCollection.tickets.vip[0]];
 
       expect(result.myTickets).toEqual(expectedMyTickets);

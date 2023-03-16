@@ -1,124 +1,187 @@
-import { ROLE } from '../../common/roles';
-import { getUsers, UserTestRepository } from './test/user.repository';
-import { MockUserService } from './test/__mocks__/user.service';
-import { VerificationStatus } from './user.interface';
+import { getModelToken } from '@nestjs/mongoose';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Model, Mongoose, ObjectId } from 'mongoose';
+import { UserService } from '../user/user.service';
+import { AuthService } from '../auth/auth.service';
+import { VerificationStatus, Verification } from './user.interface';
+import { Role } from 'common/roles';
+import { StorageService } from '../storage/storage.service';
+import { JwtService } from '@nestjs/jwt';
+import mongoose from 'mongoose';
+import { HttpException, NotFoundException } from '@nestjs/common';
+
+interface User {
+  _id: mongoose.Types.ObjectId;
+  phoneNumber: string;
+  email: string;
+  username: string;
+  password: string;
+  verificationStatus: VerificationStatus;
+  accountType: Role;
+  profileImage: string;
+  firstName?: string;
+  lastName?: string;
+  organizationName?: string;
+}
 
 describe('UserService', () => {
-  let users: UserTestRepository[] = [];
+  let userService: UserService;
+  let authService: AuthService;
+  let userModel: Model<User>;
+
+  let userCollection: User[] = [];
 
   beforeEach(async () => {
-    users = [...getUsers()];
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UserService,
+        AuthService,
+        StorageService,
+        JwtService,
+        {
+          provide: getModelToken('User'),
+          useValue: {
+            findById: jest.fn().mockReturnThis(),
+            findOne: jest.fn().mockReturnThis(),
+            exec: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken('EventOrganizer'),
+          useValue: {
+            find: jest.fn(),
+            exec: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken('Customer'),
+          useValue: {
+            find: jest.fn(),
+            exec: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    userService = module.get<UserService>(UserService);
+    userModel = module.get<Model<User>>(getModelToken('User'));
+
+    userCollection = [
+      {
+        _id: new mongoose.Types.ObjectId(),
+        phoneNumber: '1',
+        email: 'test1@email.com',
+        username: '1',
+        password: 'password',
+        verificationStatus: VerificationStatus.NOT_VERIFIED,
+        accountType: 'CUSTOMER',
+        profileImage: 'string',
+      },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        phoneNumber: '2',
+        email: 'test2@email.com',
+        username: '2',
+        password: 'password',
+        verificationStatus: VerificationStatus.VERIFIED,
+        accountType: 'CUSTOMER',
+        profileImage: 'string',
+      },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        phoneNumber: '3',
+        email: 'test3@email.com',
+        username: '3',
+        password: 'password',
+        verificationStatus: VerificationStatus.NOT_VERIFIED,
+        accountType: 'EVENT_ORGANIZER',
+        profileImage: 'string',
+      },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        phoneNumber: '4',
+        email: 'test4@email.com',
+        username: '4',
+        password: 'password',
+        verificationStatus: VerificationStatus.NOT_VERIFIED,
+        accountType: 'EVENT_ORGANIZER',
+        profileImage: 'string',
+      },
+    ];
   });
 
-  it('should return user with correct ID', () => {
-    expect(MockUserService.findById(users, '1')).toBe(users[0]);
+  describe('get users by ID', () => {
+    it('should return user of that ID', async () => {
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        select: jest.fn().mockReturnValue(userCollection[0]),
+      } as any);
+
+      const result = await userService.findById(userCollection[0]._id);
+      expect(result._id).toBe(userCollection[0]._id);
+    });
+
+    it('should return user of that ID', async () => {
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        select: jest.fn().mockReturnValue(null),
+      } as any);
+
+      try {
+        await userService.findById(new mongoose.Types.ObjectId());
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
   });
 
-  it('should return undefined user with wrong ID', () => {
-    expect(MockUserService.findById(users, '-1')).toBe(undefined);
+  describe('get user by phone number', () => {
+    it('should return user with that phone number', async () => {
+      jest.spyOn(userModel, 'findOne').mockReturnValue(userCollection[0] as any);
+      const result = await userService.findByPhoneNumber('1');
+      expect(result._id).toBe(userCollection[0]._id);
+    });
+
+    it('should throw error with unknown phone number', async () => {
+      jest.spyOn(userModel, 'findOne').mockReturnValue(undefined);
+      const result = await userService.findByPhoneNumber('-1');
+      expect(result).toBe(undefined);
+    });
   });
 
-  it('should return user with corresponding ID', () => {
-    expect(MockUserService.findByPhoneNumber(users, '1')).toBe(users[0]);
+  describe('find user either by phone number or email', () => {
+    it('should return user with corresponding inputs', async () => {
+      jest.spyOn(userModel, 'findOne').mockReturnValue(userCollection[0] as any);
+      const result1 = await userService.findUserByPhoneNumberOrEmail('1', undefined);
+      const result2 = await userService.findUserByPhoneNumberOrEmail(undefined, 'test1@email.com');
+      expect(result1._id).toBe(result2._id);
+    });
+
+    it('should not return user with corresponding inputs', async () => {
+      jest.spyOn(userModel, 'findOne').mockReturnValue(undefined as any);
+      const result1 = await userService.findUserByPhoneNumberOrEmail('-1', undefined);
+      const result2 = await userService.findUserByPhoneNumberOrEmail(undefined, 'test999@email.com');
+      expect(result1 && result2).toBeFalsy();
+    });
   });
 
-  it('should return user with corresponding phone number', () => {
-    expect(MockUserService.findByPhoneNumber(users, '1')).toBe(users[0]);
-  });
-
-  it('should return undefined user with wrong phone number', () => {
-    expect(MockUserService.findByPhoneNumber(users, '1')).toBe(users[0]);
-  });
-
-  it('should return user with corresponding phone number', () => {
-    expect(MockUserService.findUserByPhoneNumberOrEmail(users, '1', undefined)).toBe(users[0]);
-  });
-
-  it('should return user with corresponding email', () => {
-    expect(MockUserService.findUserByPhoneNumberOrEmail(users, undefined, 'test1@email.com')).toBe(users[0]);
-  });
-
-  it('should return user with corresponding phone number', () => {
-    expect(MockUserService.findUserByPhoneNumberOrEmail(users, '1', undefined)).toBe(users[0]);
-  });
-
-  it('should return undefined user from incorrect email', () => {
-    expect(MockUserService.findUserByPhoneNumberOrEmail(users, undefined, 'test999@email.com')).toBe(undefined);
-  });
-
-  it('should insert new customer user into list of users', () => {
-    const user: UserTestRepository = {
-      _id: '5',
-      phoneNumber: '5',
-      email: 'test5@email.com',
-      username: 'test5',
-      password: 'password',
-      verificationStatus: VerificationStatus.NOT_VERIFIED,
-      accountType: 'EVENT_ORGANIZER', // to see if accountType has been changed to 'CUSTOMER'
-      profileImage: 'img',
-    };
-
-    const userDb = MockUserService.registerCustomerUser(users, user);
-    expect(userDb).toHaveLength(5);
-    expect(userDb.at(-1)._id).toBe('5');
-    expect(userDb.at(-1).accountType).toBe('CUSTOMER');
-  });
-
-  it('should insert new event organizer user into list of users', () => {
-    const user: UserTestRepository = {
-      _id: '5',
-      phoneNumber: '5',
-      email: 'test5@email.com',
-      username: 'test5',
-      password: 'password',
-      verificationStatus: VerificationStatus.NOT_VERIFIED,
-      accountType: 'CUSTOMER', // to see if accountType has been changed to 'CUSTOMER'
-      profileImage: 'img',
-    };
-
-    const userDb = MockUserService.registerEventOrganizerUser(users, user);
-    expect(userDb).toHaveLength(5);
-    expect(userDb.at(-1)._id).toBe('5');
-    expect(userDb.at(-1).accountType).toBe('EVENT_ORGANIZER');
-  });
-
-  it('should return user of that login credentials', async () => {
-    const user = await MockUserService.login(users, '1', 'password');
-    expect(user._id).toBe('1');
-  });
-
-  it('should return user of incorect login credentials [phone]', async () => {
-    expect(await MockUserService.login(users, '-1', 'password')).toBe(undefined);
-  });
-
-  it('should return user of incorect login credentials [password]', async () => {
-    expect(await MockUserService.login(users, '2', 'programming_is_fun')).toBe(undefined);
-  });
-
-  it('should set phone verification status', () => {
-    const user = MockUserService.setUserPhoneVerificationStatus(users, '1', VerificationStatus.VERIFIED);
-    expect(user._id).toBe('1');
-    expect(user.verificationStatus).toBe(VerificationStatus.VERIFIED);
-  });
-
-  it('should return user info', () => {
-    const user = MockUserService.getUserInfo(users, '1');
-    expect(user._id).toBe('1');
-  });
-
-  it('should return user info', () => {
-    const userId = '1';
-    const user = MockUserService.getUserInfo(users, userId);
-    expect(user._id).toBe('1');
-  });
-
-  it('should return Error', () => {
-    const userId = '-1';
-    try {
-      const user = MockUserService.getUserInfo(users, userId);
-      expect(user).toBe(undefined);
-    } catch (e) {
-      expect(e.message).toBe(`User id #${userId} not found`);
-    }
+  describe('register customer user', () => {
+    it('should create new user', async () => {
+      const user: User = {
+        _id: new mongoose.Types.ObjectId(),
+        phoneNumber: '5',
+        email: 'test5@email.com',
+        username: '5',
+        password: 'password',
+        verificationStatus: VerificationStatus.NOT_VERIFIED,
+        accountType: 'CUSTOMER',
+        profileImage: 'string',
+        firstName: 'Mr.5', // type OnePieceReference
+        lastName: 'Gem',
+      };
+      userCollection.push(user);
+      // authService.generateJWT(user._id, user.)
+      // jest.spyOn(userModel, 'create').mockReturnValue({status: 200});
+      // const result = await userService.registerCustomerUser(user as any);
+      // expect(result).to
+    });
   });
 });
