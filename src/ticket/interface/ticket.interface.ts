@@ -82,8 +82,10 @@ export interface TicketQuota {
 }
 
 export interface ResaleTicketPurchasePermission {
+  _id?: string;
   address: string;
   ticketCollectionId: string;
   ticketId: string;
   smartContractTicketId: number;
+  approved?: boolean;
 }

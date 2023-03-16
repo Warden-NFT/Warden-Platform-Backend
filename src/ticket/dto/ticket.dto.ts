@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsBoolean, IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
+import mongoose from 'mongoose';
 import { MultipleMediaUploadPayloadDTO } from 'src/media/dto/media.dto';
 import { Currency, TicketGenerationMode, TicketQuota, TicketType } from '../interface/ticket.interface';
 
@@ -129,7 +130,11 @@ export class TicketQuotaDTO {
 }
 
 @Expose()
-export class ResaleTicketPurchasePermission {
+export class ResaleTicketPurchasePermissionDTO {
+  @ApiProperty()
+  @IsString()
+  _id?: string;
+
   @ApiProperty()
   @IsString()
   address: string;
@@ -145,6 +150,32 @@ export class ResaleTicketPurchasePermission {
   @ApiProperty()
   @IsNumber()
   smartContractTicketId: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  approved?: boolean;
+}
+
+@Expose()
+export class ApproveTicketPurchaseDTO {
+  @ApiProperty()
+  @IsString()
+  ticketCollectionId: string;
+
+  @ApiProperty()
+  @IsString()
+  permissionId: string;
+}
+
+@Expose()
+export class RequestResaleTicketPurchasePermissionResult {
+  @ApiProperty()
+  @IsNumber()
+  success: boolean;
+
+  @ApiProperty()
+  @IsString()
+  reason?: string;
 }
 
 @Expose()
@@ -232,8 +263,8 @@ export class TicketCollectionDTO {
   @IsString()
   generationMethod: TicketGenerationMode; // new
 
-  @ApiProperty({ type: [ResaleTicketPurchasePermission] })
-  resaleTicketPurchasePermission: ResaleTicketPurchasePermission[];
+  @ApiProperty({ type: [ResaleTicketPurchasePermissionDTO] })
+  resaleTicketPurchasePermission: ResaleTicketPurchasePermissionDTO[];
 }
 
 export class updateTicketCollectionImagesDTO extends MultipleMediaUploadPayloadDTO {
@@ -302,15 +333,4 @@ export class TicketQuotaCheckResultDTO {
   @ApiProperty()
   @IsBoolean()
   allowPurchase: boolean;
-}
-
-@Expose()
-export class RequestResaleTicketPurchasePermissionResult {
-  @ApiProperty()
-  @IsNumber()
-  success: boolean;
-
-  @ApiProperty()
-  @IsString()
-  reason?: string;
 }
