@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { UserService } from '../user/user.service';
 import { AuthService } from '../auth/auth.service';
 import { VerificationStatus, CustomerUser, EventOrganizerUser } from './user.interface';
-import { Role } from 'common/roles';
+import { Role } from '../../common/roles';
 import { StorageService } from '../storage/storage.service';
 import { JwtService } from '@nestjs/jwt';
 import mongoose from 'mongoose';

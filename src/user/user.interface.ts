@@ -1,4 +1,4 @@
-import { Role } from 'common/roles';
+import { Role } from '../../common/roles';
 import * as mongoose from 'mongoose';
 
 export type Verification = 'NotVerified' | 'Verified';
