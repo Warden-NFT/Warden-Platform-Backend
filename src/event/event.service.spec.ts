@@ -1,6 +1,7 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
+import { StorageService } from '../storage/storage.service';
 import { EventService } from './event.service';
 import { Event } from './interfaces/event.interface';
 
@@ -12,6 +13,7 @@ describe('EventService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EventService,
+        StorageService,
         {
           provide: getModelToken('Event'),
           useValue: {

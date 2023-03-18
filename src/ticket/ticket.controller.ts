@@ -26,7 +26,6 @@ import {
 } from '@nestjs/swagger';
 import { EventOrganizerGuard, JwtAuthGuard } from '../auth/jwt.guard';
 import { SuccessfulMediaOperationDTO } from '../media/dto/media.dto';
-import { StorageService } from '../storage/storage.service';
 import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from '../utils/httpResponse.dto';
 import {
   TicketDTO,
@@ -53,7 +52,7 @@ import { TicketService } from './ticket.service';
 @ApiTags('Ticket')
 @Controller('ticket')
 export class TicketController {
-  constructor(private ticketService: TicketService, private storageService: StorageService) {}
+  constructor(private ticketService: TicketService) {}
 
   @Post('collection')
   @ApiCreatedResponse({ type: InsertManyResponseDTO })

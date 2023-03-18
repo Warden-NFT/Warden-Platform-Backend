@@ -21,7 +21,6 @@ import { TicketCollectionSchema } from '../ticket/ticket.schema';
     MongooseModule.forFeature([
       { name: 'Market', schema: MarketSchema, collection: 'market' },
       { name: 'Event', schema: EventSchema, collection: 'events' },
-      { name: 'Event', schema: EventSchema, collection: 'events' },
       { name: 'TicketCollection', schema: TicketCollectionSchema, collection: 'tickets' },
     ]),
     StorageModule,
