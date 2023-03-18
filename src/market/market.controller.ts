@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AdminGuard } from 'src/auth/jwt.guard';
-import { EventService } from 'src/event/event.service';
+import { AdminGuard } from '../auth/jwt.guard';
+import { EventService } from '../event/event.service';
 import {
   EventSearchDTO,
   FeaturedEventIdsDTO,

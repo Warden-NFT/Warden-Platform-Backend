@@ -2,18 +2,18 @@ import { Module } from '@nestjs/common';
 import { MarketService } from './market.service';
 import { MarketController } from './market.controller';
 import { ConfigModule } from '@nestjs/config';
-import { StorageModule } from 'src/storage/storage.module';
+import { StorageModule } from '../storage/storage.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MarketSchema } from './market.schema';
-import { EventModule } from 'src/event/event.module';
-import { EventSchema } from 'src/event/event.schema';
-import { EventService } from 'src/event/event.service';
-import { UserModule } from 'src/user/user.module';
-import { UserService } from 'src/user/user.service';
-import { AuthModule } from 'src/auth/auth.module';
-import { TicketModule } from 'src/ticket/ticket.module';
-import { TicketService } from 'src/ticket/ticket.service';
-import { TicketCollectionSchema } from 'src/ticket/ticket.schema';
+import { EventModule } from '../event/event.module';
+import { EventSchema } from '../event/event.schema';
+import { EventService } from '../event/event.service';
+import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
+import { AuthModule } from '../auth/auth.module';
+import { TicketModule } from '../ticket/ticket.module';
+import { TicketService } from '../ticket/ticket.service';
+import { TicketCollectionSchema } from '../ticket/ticket.schema';
 
 @Module({
   imports: [
