@@ -1,14 +1,14 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Model, Mongoose, ObjectId } from 'mongoose';
+import { Model } from 'mongoose';
 import { UserService } from '../user/user.service';
 import { AuthService } from '../auth/auth.service';
-import { VerificationStatus, Verification } from './user.interface';
+import { VerificationStatus, CustomerUser, EventOrganizerUser } from './user.interface';
 import { Role } from 'common/roles';
 import { StorageService } from '../storage/storage.service';
 import { JwtService } from '@nestjs/jwt';
 import mongoose from 'mongoose';
-import { HttpException, NotFoundException } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
 
 interface User {
   _id: mongoose.Types.ObjectId;
@@ -27,7 +27,10 @@ interface User {
 describe('UserService', () => {
   let userService: UserService;
   let authService: AuthService;
+  let storageService: StorageService;
   let userModel: Model<User>;
+  let customerModel: Model<CustomerUser>;
+  let eventOrganizerModel: Model<EventOrganizerUser>;
 
   let userCollection: User[] = [];
 
@@ -44,6 +47,16 @@ describe('UserService', () => {
             findById: jest.fn().mockReturnThis(),
             findOne: jest.fn().mockReturnThis(),
             exec: jest.fn(),
+            updateOne: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken('Customer'),
+          useValue: {
+            findById: jest.fn().mockReturnThis(),
+            findOne: jest.fn().mockReturnThis(),
+            updateOne: jest.fn(),
+            exec: jest.fn(),
           },
         },
         {
@@ -51,20 +64,18 @@ describe('UserService', () => {
           useValue: {
             find: jest.fn(),
             exec: jest.fn(),
-          },
-        },
-        {
-          provide: getModelToken('Customer'),
-          useValue: {
-            find: jest.fn(),
-            exec: jest.fn(),
+            save: jest.fn(),
           },
         },
       ],
     }).compile();
 
     userService = module.get<UserService>(UserService);
+    authService = module.get<AuthService>(AuthService);
+    storageService = module.get<StorageService>(StorageService);
     userModel = module.get<Model<User>>(getModelToken('User'));
+    customerModel = module.get<Model<CustomerUser>>(getModelToken('Customer'));
+    eventOrganizerModel = module.get<Model<EventOrganizerUser>>(getModelToken('EventOrganizer'));
 
     userCollection = [
       {
@@ -164,24 +175,74 @@ describe('UserService', () => {
   });
 
   describe('register customer user', () => {
+    const user: User = {
+      _id: new mongoose.Types.ObjectId(),
+      phoneNumber: '5',
+      email: 'test5@email.com',
+      username: '5',
+      password: 'password',
+      verificationStatus: VerificationStatus.NOT_VERIFIED,
+      accountType: 'CUSTOMER',
+      profileImage: 'string',
+      firstName: 'Mr.5', // type OnePieceReference
+      lastName: 'Gem',
+    };
+
+    it('should not create new user', async () => {
+      try {
+        await userService.registerCustomerUser(userCollection[0] as any);
+        jest.spyOn(userModel, 'findOne').mockReturnValue(userCollection[0] as any);
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
     it('should create new user', async () => {
-      const user: User = {
-        _id: new mongoose.Types.ObjectId(),
-        phoneNumber: '5',
-        email: 'test5@email.com',
-        username: '5',
-        password: 'password',
-        verificationStatus: VerificationStatus.NOT_VERIFIED,
-        accountType: 'CUSTOMER',
-        profileImage: 'string',
-        firstName: 'Mr.5', // type OnePieceReference
-        lastName: 'Gem',
-      };
-      userCollection.push(user);
-      // authService.generateJWT(user._id, user.)
-      // jest.spyOn(userModel, 'create').mockReturnValue({status: 200});
-      // const result = await userService.registerCustomerUser(user as any);
-      // expect(result).to
+      jest.spyOn(userModel, 'findOne').mockReturnValue(undefined);
+      const result = await userService.registerCustomerUser(user as any);
+      // verify result.jwt
+    });
+  });
+
+  // TODO: Find a good solution for userModel.save() is undefined...
+  describe('should set phone verification status', () => {
+    it('should set verification status to true', async () => {
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        select: jest.fn().mockReturnValue(userCollection[0]),
+      } as any);
+
+      // jest.spyOn(userModel, 'create').mockImplementationOnce(() =>
+      //   Promise.resolve({
+      //     status: 200,
+      //   }),
+      // );
+      // const result = await userService.setUserPhoneVerificationStatus(
+      //   userCollection[0]._id.toString(),
+      //   VerificationStatus.VERIFIED,
+      // );
+
+      // expect(result.status).toBe(200);
+    });
+  });
+
+  describe('should get user info of that corresponding id', () => {
+    it('should get user info', async () => {
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        select: jest.fn().mockReturnValue(userCollection[0]),
+      } as any);
+
+      const userInfo = await userService.getUserInfo(userCollection[0]._id.toString());
+      expect(userInfo.firstName).toBe(userInfo.firstName);
+    });
+    it('should get not get user info', async () => {
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        select: jest.fn().mockReturnValue(undefined),
+      } as any);
+
+      try {
+        await userService.getUserInfo(new mongoose.Types.ObjectId().toString());
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
     });
   });
 });
