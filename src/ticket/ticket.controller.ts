@@ -24,10 +24,10 @@ import {
   ApiUnauthorizedResponse,
   refs,
 } from '@nestjs/swagger';
-import { EventOrganizerGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
-import { SuccessfulMediaOperationDTO } from 'src/media/dto/media.dto';
-import { StorageService } from 'src/storage/storage.service';
-import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from 'src/utils/httpResponse.dto';
+import { EventOrganizerGuard, JwtAuthGuard } from '../auth/jwt.guard';
+import { SuccessfulMediaOperationDTO } from '../media/dto/media.dto';
+import { StorageService } from '../storage/storage.service';
+import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from '../utils/httpResponse.dto';
 import {
   TicketDTO,
   TicketCollectionDTO,

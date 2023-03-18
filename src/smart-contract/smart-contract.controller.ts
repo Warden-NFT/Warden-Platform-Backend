@@ -6,8 +6,8 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AdminGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
-import { HttpErrorResponse } from 'src/utils/httpResponse.dto';
+import { AdminGuard } from '../auth/jwt.guard';
+import { HttpErrorResponse } from '../utils/httpResponse.dto';
 import { SmartContractAbiDTO, SmartContractBytecodeDTO } from './dto/smart-contract.dto';
 import { SmartContractService } from './smart-contract.service';
 
