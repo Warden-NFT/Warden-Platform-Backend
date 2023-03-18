@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ROLE } from 'common/roles';
+import { ROLE } from '../../common/roles';
 import mongoose, { Model } from 'mongoose';
 import { EventService } from '../event/event.service';
 import { Event } from '../event/interfaces/event.interface';
