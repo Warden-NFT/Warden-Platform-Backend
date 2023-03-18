@@ -1,5 +1,8 @@
+import { JwtService } from '@nestjs/jwt';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
+import { AuthService } from '../auth/auth.service';
+import { StorageService } from '../storage/storage.service';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
@@ -11,6 +14,9 @@ describe('UserController', () => {
       controllers: [UserController],
       providers: [
         UserService,
+        AuthService,
+        StorageService,
+        JwtService,
         {
           provide: getModelToken('User'),
           useValue: {
@@ -22,6 +28,10 @@ describe('UserController', () => {
         },
         {
           provide: getModelToken('Customer'),
+          useValue: {},
+        },
+        {
+          provide: getModelToken('EventOrganizer'),
           useValue: {},
         },
       ],
