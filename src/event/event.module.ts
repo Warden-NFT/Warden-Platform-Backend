@@ -4,10 +4,9 @@ import { EventController } from './event.controller';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventSchema } from './event.schema';
-import { StorageModule } from 'src/storage/storage.module';
-import { UserSchema } from 'src/user/user.schema';
-import { UserModule } from 'src/user/user.module';
-import { TicketModule } from 'src/ticket/ticket.module';
+import { StorageModule } from '../storage/storage.module';
+import { UserSchema } from '../user/user.schema';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
