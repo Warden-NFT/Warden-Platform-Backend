@@ -13,8 +13,8 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { AdminGuard } from 'src/auth/jwt.guard';
-import { StorageService } from 'src/storage/storage.service';
+import { AdminGuard } from '../auth/jwt.guard';
+import { StorageService } from '../storage/storage.service';
 import {
   DeleteMediaDTO,
   GetMediaDTO,

@@ -21,8 +21,8 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt.guard';
-import { FILE_SIZES } from 'src/utils/constants';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { FILE_SIZES } from '../utils/constants';
 import {
   CreateCustomerUserDTO,
   CreateEventOrganizerUserDTO,

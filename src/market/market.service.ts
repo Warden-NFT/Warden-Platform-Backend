@@ -2,13 +2,13 @@ import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestj
 import { InjectModel } from '@nestjs/mongoose';
 import { ROLE } from 'common/roles';
 import mongoose, { Model } from 'mongoose';
-import { EventService } from 'src/event/event.service';
-import { Event } from 'src/event/interfaces/event.interface';
-import { TicketCollection } from 'src/ticket/interface/ticket.interface';
-import { TicketService } from 'src/ticket/ticket.service';
-import { EventOrganizerUser } from 'src/user/user.interface';
-import { UserService } from 'src/user/user.service';
-import { throwBadRequestError } from 'src/utils/httpError';
+import { EventService } from '../event/event.service';
+import { Event } from '../event/interfaces/event.interface';
+import { TicketCollection } from '../ticket/interface/ticket.interface';
+import { TicketService } from '../ticket/ticket.service';
+import { EventOrganizerUser } from '../user/user.interface';
+import { UserService } from '../user/user.service';
+import { throwBadRequestError } from '../utils/httpError';
 import { EventSearchDTO, MarketEventDTO, MarketTicketDTO, TicketListingInfoDTO } from './dto/market.dto';
 import { Market } from './interface/market.interface';
 

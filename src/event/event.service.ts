@@ -1,9 +1,8 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { TicketService } from 'src/ticket/ticket.service';
-import { UserGeneralInfoDTO } from 'src/user/dto/user.dto';
-import { EventOrganizerUser } from 'src/user/user.interface';
+import { UserGeneralInfoDTO } from '../user/dto/user.dto';
+import { EventOrganizerUser } from '../user/user.interface';
 import { StorageService } from '../storage/storage.service';
 import { EventDTO, UpdateEventDTO } from './event.dto';
 import { Event } from './interfaces/event.interface';
