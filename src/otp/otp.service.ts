@@ -5,14 +5,14 @@ import { RequestOtpResponseDTO } from './otp.dto';
 export class OtpService {
   async getOtp(phoneNumber: string): Promise<RequestOtpResponseDTO> {
     try {
-      const sdk = require('api')('@thaibulksms/v1.0#5alni1epl6dge9p1');
+      const sdk = require('api')('@thaibulksms/v1.0#1of51jl4qvzac3');
       const res = await sdk.postV2OtpRequest(
         {
           key: process.env.OTP_KEY,
           secret: process.env.OTP_SECRETKEY,
           msisdn: phoneNumber,
         },
-        { Accept: 'application/json' },
+        { accept: 'application/json' },
       );
       return res;
     } catch (err) {
@@ -23,7 +23,7 @@ export class OtpService {
 
   async verifyOtp(token: string, pin: string): Promise<{ status: number; message: string }> {
     try {
-      const sdk = require('api')('@thaibulksms/v1.0#5alni1epl6dge9p1');
+      const sdk = require('api')('@thaibulksms/v1.0#1of51jl4qvzac3');
       const res = await sdk.postV2OtpVerify(
         {
           key: process.env.OTP_KEY,
@@ -31,7 +31,7 @@ export class OtpService {
           token: token,
           pin: pin,
         },
-        { Accept: 'application/json' },
+        { accept: 'application/json' },
       );
       return { status: res.status, message: res.message };
     } catch (err) {
