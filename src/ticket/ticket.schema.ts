@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 export const TicketSchema = new mongoose.Schema({
+  smartContractTicketId: {
+    type: Number,
+    required: false,
+  },
   dateIssued: {
     type: String,
     required: true,
@@ -51,13 +55,13 @@ export const TicketSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  hasUsed: {
+    type: Boolean,
+    required: true,
+  },
 });
 
 export const TicketCollectionSchema = new mongoose.Schema({
-  smartContractTicketId: {
-    type: Number,
-    required: false,
-  },
   tickets: {
     general: [TicketSchema],
     vip: [TicketSchema],
@@ -169,4 +173,28 @@ export const TicketCollectionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  resaleTicketPurchasePermission: [
+    {
+      address: {
+        type: String,
+        required: true,
+      },
+      ticketCollectionId: {
+        type: String,
+        required: true,
+      },
+      ticketId: {
+        type: String,
+        required: true,
+      },
+      smartContractTicketId: {
+        type: Number,
+        required: true,
+      },
+      approved: {
+        type: Boolean,
+        required: false,
+      },
+    },
+  ],
 });

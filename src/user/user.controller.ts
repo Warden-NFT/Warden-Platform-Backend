@@ -11,7 +11,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiConflictResponse,
@@ -21,8 +20,8 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt.guard';
-import { FILE_SIZES } from 'src/utils/constants';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { FILE_SIZES } from '../utils/constants';
 import {
   CreateCustomerUserDTO,
   CreateEventOrganizerUserDTO,
@@ -37,7 +36,7 @@ import { UserService } from './user.service';
 @ApiTags('Users')
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService, private readonly configService: ConfigService) {}
+  constructor(private userService: UserService) {}
 
   @Post('registerCustomer')
   @HttpCode(HttpStatus.CREATED)

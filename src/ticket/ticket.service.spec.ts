@@ -2,10 +2,13 @@ import { HttpException } from '@nestjs/common';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
+import { UserService } from '../user/user.service';
 import { EventService } from '../event/event.service';
 import { StorageService } from '../storage/storage.service';
 import { TicketCollection } from './interface/ticket.interface';
 import { TicketService } from './ticket.service';
+import { AuthService } from '../auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 describe('TicketService', () => {
   let ticketService: TicketService;
@@ -17,6 +20,9 @@ describe('TicketService', () => {
         TicketService,
         StorageService,
         EventService,
+        UserService,
+        AuthService,
+        JwtService,
         {
           provide: getModelToken('TicketCollection'),
           useValue: {
@@ -26,6 +32,27 @@ describe('TicketService', () => {
         },
         {
           provide: getModelToken('Event'),
+          useValue: {
+            find: jest.fn(),
+            exec: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken('User'),
+          useValue: {
+            find: jest.fn(),
+            exec: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken('EventOrganizer'),
+          useValue: {
+            find: jest.fn(),
+            exec: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken('Customer'),
           useValue: {
             find: jest.fn(),
             exec: jest.fn(),

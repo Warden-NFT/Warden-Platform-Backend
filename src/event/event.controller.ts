@@ -21,10 +21,10 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { EventOrganizerGuard } from 'src/auth/jwt.guard';
-import { UserGeneralInfoDTO } from 'src/user/dto/user.dto';
-import { FILE_SIZES } from 'src/utils/constants';
-import { DeleteResponseDTO, HttpErrorResponse } from 'src/utils/httpResponse.dto';
+import { EventOrganizerGuard } from '../auth/jwt.guard';
+import { UserGeneralInfoDTO } from '../user/dto/user.dto';
+import { FILE_SIZES } from '../utils/constants';
+import { DeleteResponseDTO, HttpErrorResponse } from '../utils/httpResponse.dto';
 import { EventDTO, UpdateEventDTO } from './event.dto';
 import { EventService } from './event.service';
 

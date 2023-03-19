@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsBoolean, IsDate, IsNumber, IsString, Max, Min } from 'class-validator';
-import { MultipleMediaUploadPayloadDTO } from 'src/media/dto/media.dto';
+import mongoose from 'mongoose';
+import { MultipleMediaUploadPayloadDTO } from '../../media/dto/media.dto';
 import { Currency, TicketGenerationMode, TicketQuota, TicketType } from '../interface/ticket.interface';
 
 export class TicketsMetadataDTO {
@@ -73,6 +74,10 @@ export class TicketDTO {
   _id?: string;
 
   @ApiProperty()
+  @IsString()
+  smartContractTicketId?: number;
+
+  @ApiProperty()
   @IsDate()
   dateIssued: Date;
 
@@ -101,12 +106,15 @@ export class TicketDTO {
 
   @ApiProperty({ type: PriceDTO })
   price: PriceDTO;
+
+  @ApiProperty()
+  hasUsed: boolean;
 }
 
 export class VIPTicketDTO extends TicketDTO {
   @ApiProperty()
   @IsString()
-  benefits: string; // placeholder
+  benefits?: string; // placeholder
 }
 
 export class ReservedSeatDTO extends TicketDTO {
@@ -119,6 +127,55 @@ export class TicketQuotaDTO {
   general?: number;
   vip?: number;
   reservedSeat?: number;
+}
+
+@Expose()
+export class ResaleTicketPurchasePermissionDTO {
+  @ApiProperty()
+  @IsString()
+  _id?: string;
+
+  @ApiProperty()
+  @IsString()
+  address: string;
+
+  @ApiProperty()
+  @IsString()
+  ticketCollectionId: string;
+
+  @ApiProperty()
+  @IsString()
+  ticketId: string;
+
+  @ApiProperty()
+  @IsNumber()
+  smartContractTicketId: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  approved?: boolean;
+}
+
+@Expose()
+export class ApproveTicketPurchaseDTO {
+  @ApiProperty()
+  @IsString()
+  ticketCollectionId: string;
+
+  @ApiProperty()
+  @IsString()
+  permissionId: string;
+}
+
+@Expose()
+export class RequestResaleTicketPurchasePermissionResult {
+  @ApiProperty()
+  @IsNumber()
+  success: boolean;
+
+  @ApiProperty()
+  @IsString()
+  reason?: string;
 }
 
 @Expose()
@@ -138,10 +195,6 @@ export class TicketCollectionDTO {
   @ApiProperty()
   @IsString()
   _id?: string;
-
-  @ApiProperty()
-  @IsString()
-  smartContractTicketId?: string;
 
   @ApiProperty({ type: TicketTypesDTO })
   tickets: {
@@ -209,6 +262,9 @@ export class TicketCollectionDTO {
   @ApiProperty()
   @IsString()
   generationMethod: TicketGenerationMode; // new
+
+  @ApiProperty({ type: [ResaleTicketPurchasePermissionDTO] })
+  resaleTicketPurchasePermission: ResaleTicketPurchasePermissionDTO[];
 }
 
 export class updateTicketCollectionImagesDTO extends MultipleMediaUploadPayloadDTO {
@@ -243,4 +299,46 @@ export class TicketTransactionDTO {
   @ApiProperty()
   @IsString()
   ticketId: string;
+}
+
+@Expose()
+export class TicketUtilizeDTO {
+  @ApiProperty()
+  @IsString()
+  eventId: string;
+
+  @ApiProperty()
+  @IsString()
+  ticketId: string;
+
+  @ApiProperty()
+  @IsString()
+  userId: string;
+
+  @ApiProperty()
+  @IsString()
+  walletAddress: string;
+}
+
+@Expose()
+export class TicketQuotaCheckResultDTO {
+  @ApiProperty()
+  @IsNumber()
+  ownedTicketsCount: number;
+
+  @ApiProperty()
+  @IsNumber()
+  quota: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  allowPurchase: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  resalePurchaseApproved: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  resalePurchasePendingApproval: boolean;
 }

@@ -2,7 +2,7 @@ import { StorageFile, StorageFileWithMetadata } from './storage-file';
 import { DownloadResponse, Storage } from '@google-cloud/storage';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import StorageConfig from './storage-config';
-import { FileData, StoredFileMetadata } from 'src/media/Interfaces/MediaUpload';
+import { FileData, StoredFileMetadata } from '../media/Interfaces/MediaUpload';
 
 @Injectable()
 export class StorageService {
@@ -13,8 +13,8 @@ export class StorageService {
     this.storage = new Storage({
       projectId: StorageConfig.projectId,
       credentials: {
-        client_email: StorageConfig.client_email.replace(/\\n/g, '\n'),
-        private_key: StorageConfig.private_key.replace(/\\n/g, '\n'),
+        client_email: StorageConfig.client_email?.replace(/\\n/g, '\n'),
+        private_key: StorageConfig.private_key?.replace(/\\n/g, '\n'),
       },
     });
 

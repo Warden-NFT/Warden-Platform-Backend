@@ -4,10 +4,11 @@ import { TicketController } from './ticket.controller';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TicketCollectionSchema } from './ticket.schema';
-import { StorageModule } from 'src/storage/storage.module';
-import { EventModule } from 'src/event/event.module';
-import { EventService } from 'src/event/event.service';
-import { EventSchema } from 'src/event/event.schema';
+import { StorageModule } from '../storage/storage.module';
+import { EventModule } from '../event/event.module';
+import { EventService } from '../event/event.service';
+import { EventSchema } from '../event/event.schema';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { EventSchema } from 'src/event/event.schema';
       { name: 'Event', schema: EventSchema, collection: 'events' },
     ]),
     EventModule,
+    UserModule,
   ],
   providers: [TicketService, EventService],
   controllers: [TicketController],

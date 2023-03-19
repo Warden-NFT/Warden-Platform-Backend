@@ -1,8 +1,8 @@
 import { Expose } from 'class-transformer';
-import { Event } from 'src/event/interfaces/event.interface';
-import { TicketPriceDTO } from 'src/ticket/dto/ticket.dto';
-import { Ticket, TicketCollection } from 'src/ticket/interface/ticket.interface';
-import { EventOrganizerUser } from 'src/user/user.interface';
+import { Event } from '../../event/interfaces/event.interface';
+import { TicketPriceDTO } from '../../ticket/dto/ticket.dto';
+import { Ticket, TicketCollection } from '../../ticket/interface/ticket.interface';
+import { EventOrganizerUser } from '../../user/user.interface';
 
 @Expose()
 export class FeaturedEventIdsDTO {

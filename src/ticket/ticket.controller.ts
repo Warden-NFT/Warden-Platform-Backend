@@ -24,10 +24,9 @@ import {
   ApiUnauthorizedResponse,
   refs,
 } from '@nestjs/swagger';
-import { EventOrganizerGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
-import { SuccessfulMediaOperationDTO } from 'src/media/dto/media.dto';
-import { StorageService } from 'src/storage/storage.service';
-import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from 'src/utils/httpResponse.dto';
+import { EventOrganizerGuard, JwtAuthGuard } from '../auth/jwt.guard';
+import { SuccessfulMediaOperationDTO } from '../media/dto/media.dto';
+import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from '../utils/httpResponse.dto';
 import {
   TicketDTO,
   TicketCollectionDTO,
@@ -36,15 +35,24 @@ import {
   updateTicketCollectionImagesDTO,
   VIPTicketDTO,
   TicketTransactionDTO,
+  TicketUtilizeDTO,
+  TicketQuotaCheckResultDTO,
+  ResaleTicketPurchasePermissionDTO,
+  ApproveTicketPurchaseDTO,
 } from './dto/ticket.dto';
-import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
+import {
+  AdmissionDetailDTO,
+  MyTicketsDTO,
+  TicketTransactionPermissionDTO,
+  UpdateTicketOwnershipDTO,
+} from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection } from './interface/ticket.interface';
 import { TicketService } from './ticket.service';
 
 @ApiTags('Ticket')
 @Controller('ticket')
 export class TicketController {
-  constructor(private ticketService: TicketService, private storageService: StorageService) {}
+  constructor(private ticketService: TicketService) {}
 
   @Post('collection')
   @ApiCreatedResponse({ type: InsertManyResponseDTO })
@@ -79,10 +87,13 @@ export class TicketController {
   @Get('/metadata')
   @ApiOkResponse({ type: TicketsMetadataDTO })
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
-  async getTicketMetadat(@Query('path') _path: string) {
+  async getTicketMetadat(@Query('path') _path: string, @Query('ticketId') ticketId: string) {
     const path = _path.split(',').reduce((prev, curr) => `${prev}/${curr}`);
-    const { metadata } = await this.storageService.getMetadata(`media/${path}`);
-    return metadata;
+    // the path is in the format of <eventId>/<ticketName>
+    const eventId = path.split('/')[0];
+    const ticket = await this.ticketService.getTicketByID(eventId, ticketId);
+    const { attributes, description, image, name } = ticket.ticketMetadata[0];
+    return { attributes, description, image, name };
   }
 
   @Get('/user/:walletAddress')
@@ -175,5 +186,57 @@ export class TicketController {
       dto.ticketId,
       req.user.uid,
     );
+  }
+
+  @Put('/utilize')
+  @ApiOkResponse({ type: UpdateTicketOwnershipDTO })
+  @ApiForbiddenResponse({ description: 'You do not have sufficient permission to admit user' })
+  @UseGuards(EventOrganizerGuard)
+  async ticketAdmission(@Body() dto: TicketUtilizeDTO, @Req() req) {
+    return await this.ticketService.utilizeTicket(dto.eventId, dto.ticketId, dto.userId);
+  }
+
+  @Get('/admission/check')
+  @ApiOkResponse({ type: AdmissionDetailDTO })
+  @ApiForbiddenResponse({ description: 'This ticket is not belong to this wallet address' })
+  @UseGuards(EventOrganizerGuard)
+  async checkUserAdmission(@Query() dto: TicketUtilizeDTO, @Req() req) {
+    return await this.ticketService.getEventApplicantInfo(dto.eventId, dto.ticketId, dto.userId, dto.walletAddress);
+  }
+
+  @Get('/quota/check')
+  @ApiOkResponse({ type: TicketQuotaCheckResultDTO })
+  @ApiBadRequestResponse({ description: 'Unable to check for ticket quota for this user' })
+  @UseGuards(JwtAuthGuard)
+  async checkTicketPurchaseQuota(
+    @Query('address') address: string,
+    @Query('ticketCollectionId') ticketCollectionId: string,
+    @Query('ticketType') ticketType: string,
+    @Query('smartContractTicketId') smartContractTicketId: string,
+  ) {
+    return await this.ticketService.checkTicketPurchaseQuota(
+      address,
+      ticketCollectionId,
+      ticketType,
+      parseInt(smartContractTicketId),
+    );
+  }
+
+  @Post('/permission/buy-resale')
+  @ApiOkResponse({ type: ResaleTicketPurchasePermissionDTO })
+  @ApiNotFoundResponse({ description: 'TicketCollection with ID ${permissionRequest.ticketCollectionId} not found' })
+  @ApiConflictResponse({ description: 'The request has already been made' })
+  @UseGuards(JwtAuthGuard)
+  async sendResaleTicketPurchaseRequest(@Body() dto: ResaleTicketPurchasePermissionDTO) {
+    return this.ticketService.sendResaleTicketPurchaseRequest(dto);
+  }
+
+  @Post('/permission/approve')
+  @ApiOkResponse({ type: ResaleTicketPurchasePermissionDTO })
+  @ApiNotFoundResponse({ description: 'TicketCollection with ID ${permissionRequest.ticketCollectionId} not found' })
+  @ApiConflictResponse({ description: 'The request has already been made' })
+  @UseGuards(JwtAuthGuard)
+  async approveResaleTicketPurchaseRequest(@Body() dto: ApproveTicketPurchaseDTO) {
+    return this.ticketService.approveResaleTicketPurchaseRequest(dto.ticketCollectionId, dto.permissionId);
   }
 }

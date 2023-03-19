@@ -12,18 +12,30 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as moment from 'moment';
 import { Model } from 'mongoose';
 import { EventService } from '../event/event.service';
-import { MarketEventTicketPreviewsDTO } from 'src/market/dto/market.dto';
+import { MarketEventTicketPreviewsDTO } from '../market/dto/market.dto';
 import { StorageService } from '../storage/storage.service';
 import { throwBadRequestError } from '../utils/httpError';
 import { DeleteResponseDTO } from '../utils/httpResponse.dto';
-import { TicketDTO, TicketCollectionDTO, updateTicketCollectionImagesDTO, VIPTicketDTO } from './dto/ticket.dto';
+import {
+  TicketDTO,
+  TicketCollectionDTO,
+  updateTicketCollectionImagesDTO,
+  VIPTicketDTO,
+  TicketQuotaCheckResultDTO,
+  ResaleTicketPurchasePermissionDTO,
+  RequestResaleTicketPurchasePermissionResult,
+} from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
-import { Ticket, TicketCollection, TicketTypeKeys } from './interface/ticket.interface';
-import { Event } from 'src/event/interfaces/event.interface';
+import { Ticket, TicketCollection, TicketTypeKeyName, TicketTypeKeys } from './interface/ticket.interface';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class TicketService {
-  constructor(private storageService: StorageService, private eventService: EventService) {}
+  constructor(
+    private storageService: StorageService,
+    private eventService: EventService,
+    private userService: UserService,
+  ) {}
   @InjectModel('TicketCollection') private ticketCollectionModel: Model<TicketCollection>;
 
   // Create a record of tickets generated
@@ -260,9 +272,12 @@ export class TicketService {
       if (!ticketToBeUpdated) {
         throw new NotFoundException(`Ticket set #${ticketCollectionId} not found`);
       }
-      if (!isTransactionUpdate && ticketToBeUpdated.ownerId.toString() !== ownerId) {
-        throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
-      }
+
+      //TODO: Debug this statement
+      // if (!isTransactionUpdate && ticketToBeUpdated.ownerId.toString() !== ownerId) {
+      //   throw new UnauthorizedException(`You do not have the permission to edit this ticket`);
+      // }
+
       const ticketCollectionToBeUpdated = await this.ticketCollectionModel.findById(ticketCollectionId);
       const ticketTypes = Object.keys(ticketCollectionToBeUpdated.tickets);
       let _key = '';
@@ -326,8 +341,17 @@ export class TicketService {
   ): Promise<TicketTransactionPermissionDTO> {
     try {
       const _ticket = await this.getTicketByID(eventId, ticketId);
-      if (_ticket.ownerAddress === walletAddress) {
+      if (_ticket.ownerHistory.at(-1) === walletAddress) {
         return { allowed: false, reason: 'You cannot purchase your own ticket' };
+      }
+
+      const _ticketQuotaCheckResult = await this.checkTicketPurchaseQuota(
+        walletAddress,
+        ticketCollectionId,
+        TicketTypeKeyName[_ticket.ticketType],
+      );
+      if (!_ticketQuotaCheckResult.allowPurchase) {
+        return { allowed: false, reason: 'Maximum ticket quota reached' };
       }
 
       const _event = await this.eventService.getEvent(eventId);
@@ -372,7 +396,6 @@ export class TicketService {
       const _ticket = await this.getTicketByID(eventId, ticketId);
       const _event = await this.eventService.getEvent(eventId);
       _ticket.ownerHistory.push(walletAddress);
-      _ticket.ownerAddress = walletAddress;
       await this.updateTicket(_ticket, ticketCollectionId, userId, true);
     } catch (error) {
       throwBadRequestError(error);
@@ -388,14 +411,139 @@ export class TicketService {
     userId: string,
   ): Promise<UpdateTicketOwnershipDTO> {
     const _ticket = await this.getTicketByID(eventId, ticketId);
-    if (_ticket.ownerAddress !== walletAddress) {
+    if (_ticket.ownerHistory.at(-1) !== walletAddress) {
       throw new ForbiddenException('You can only sell your own ticket');
     }
-    _ticket.ownerHistory.push(walletAddress);
-    _ticket.ownerAddress = walletAddress;
+    _ticket.ownerHistory.push(_ticket.ownerHistory[0]);
     await this.updateTicket(_ticket, ticketCollectionId, userId);
     return {
       success: true,
     };
+  }
+
+  // Update ticket's hasUsed status
+  async utilizeTicket(eventId: string, ticketId: string, ownerId: string) {
+    const _ticket = await this.getTicketByID(eventId, ticketId);
+    const event = await this.eventService.getEvent(eventId);
+
+    if (!_ticket.hasUsed) {
+      _ticket.hasUsed = true;
+    }
+
+    await this.updateTicket(_ticket, event.ticketCollectionId, ownerId, false);
+    return { success: true };
+  }
+
+  async getEventApplicantInfo(eventId: string, ticketId: string, userId: string, address: string) {
+    const event = await this.eventService.getEvent(eventId);
+    const ticket = await this.getTicketByID(eventId, ticketId);
+    const user = await this.userService.getUserInfo(userId);
+
+    if (ticket.ownerHistory.at(-1) !== address) {
+      throw new BadRequestException('This ticket is not belong to this wallet address');
+    }
+
+    return { event, ticket, user };
+  }
+
+  // Check the user's ticket purchase quota
+  async checkTicketPurchaseQuota(
+    address: string,
+    ticketCollectionId: string,
+    ticketType: string,
+    smartContractTicketId?: number,
+  ): Promise<TicketQuotaCheckResultDTO> {
+    const ownedTicketsResponse: MyTicketsDTO = await this.getTicketsOfUser(address);
+    const { myTickets, myTicketListing } = ownedTicketsResponse;
+
+    const ticketCollection: TicketCollection = await this.getTicketCollectionByID(ticketCollectionId);
+    const allTickets = [
+      ...ticketCollection.tickets.general.map((ticket) => ticket._id.toString()),
+      ...ticketCollection.tickets.vip.map((ticket) => ticket._id.toString()),
+      ...ticketCollection.tickets.reservedSeat.map((ticket) => ticket._id.toString()),
+    ];
+    const _myTickets = myTickets.filter((ticket) => {
+      return allTickets.includes(ticket._id.toString());
+    });
+    const _myTicketListing = myTicketListing.filter((ticket) => {
+      return allTickets.includes(ticket._id.toString());
+    });
+
+    const ownedTicketsCount = _myTickets.length + _myTicketListing.length;
+    const quota = ticketCollection.ticketQuota[ticketType];
+
+    // Check if there are any pending resale ticket purchase approvals
+    let resalePurchaseApproved = false;
+    let resalePurchasePendingApproval = false;
+    if (smartContractTicketId) {
+      const permissionRequest = ticketCollection.resaleTicketPurchasePermission.find((request) => {
+        return request.address === address && request.smartContractTicketId === smartContractTicketId;
+      });
+      resalePurchasePendingApproval = Boolean(permissionRequest && !Boolean(permissionRequest.approved));
+      resalePurchaseApproved = Boolean(permissionRequest && permissionRequest.approved);
+    }
+
+    return {
+      ownedTicketsCount,
+      quota,
+      allowPurchase: ownedTicketsCount < quota,
+      resalePurchaseApproved,
+      resalePurchasePendingApproval,
+    };
+  }
+
+  // Request purchase ticket from event
+  // Save the list of addresses that wants the permission to buy a resale ticket in an array
+  async sendResaleTicketPurchaseRequest(
+    permissionRequest: ResaleTicketPurchasePermissionDTO,
+  ): Promise<RequestResaleTicketPurchasePermissionResult> {
+    try {
+      const ticketCollection = await this.ticketCollectionModel.findById(permissionRequest.ticketCollectionId);
+      if (!ticketCollection) {
+        throw new NotFoundException(`TicketCollection with ID ${permissionRequest.ticketCollectionId} not found`);
+      }
+
+      const matchingPermissionRequest = ticketCollection.resaleTicketPurchasePermission.find(
+        (request) =>
+          request.address === permissionRequest.address &&
+          request.smartContractTicketId === permissionRequest.smartContractTicketId,
+      );
+      if (matchingPermissionRequest) {
+        throw new ConflictException('The request has already been made');
+      }
+
+      ticketCollection.resaleTicketPurchasePermission.push(permissionRequest);
+      await ticketCollection.save();
+      return { success: true };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
+  // Approve the resale ticket purchase request
+  async approveResaleTicketPurchaseRequest(
+    ticketCollectionId: string,
+    permissionId: string,
+  ): Promise<ResaleTicketPurchasePermissionDTO[]> {
+    const ticketCollection = await this.ticketCollectionModel.findById(ticketCollectionId);
+    if (!ticketCollection) {
+      throw new NotFoundException(`TicketCollection with ID ${ticketCollectionId} not found`);
+    }
+
+    // Finds the matching request and set approved to true
+    ticketCollection.resaleTicketPurchasePermission = ticketCollection.resaleTicketPurchasePermission.map(
+      (permission: ResaleTicketPurchasePermissionDTO) => {
+        return {
+          ...permission,
+          approved: permission._id.toString() == permissionId,
+        };
+      },
+    );
+    try {
+      const updatedCollection = await ticketCollection.save();
+      return updatedCollection.resaleTicketPurchasePermission;
+    } catch (error) {
+      throwBadRequestError(error);
+    }
   }
 }

@@ -6,8 +6,8 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AdminGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
-import { HttpErrorResponse } from 'src/utils/httpResponse.dto';
+import { AdminGuard } from '../auth/jwt.guard';
+import { HttpErrorResponse } from '../utils/httpResponse.dto';
 import { SmartContractAbiDTO, SmartContractBytecodeDTO } from './dto/smart-contract.dto';
 import { SmartContractService } from './smart-contract.service';
 
@@ -28,7 +28,6 @@ export class SmartContractController {
   @Get('abi')
   @ApiOkResponse({ type: SmartContractAbiDTO })
   @ApiNotFoundResponse({ description: 'ABI not found' })
-  @UseGuards(JwtAuthGuard)
   async getSmartContractABI() {
     return this.smartContractService.getSmartContractABI();
   }
@@ -44,7 +43,6 @@ export class SmartContractController {
   @Get('bytecode')
   @ApiOkResponse({ type: SmartContractBytecodeDTO })
   @ApiNotFoundResponse({ description: 'ABI not found' })
-  @UseGuards(JwtAuthGuard)
   async getSmartContractBytecode() {
     return this.smartContractService.getSmartContractBytecode();
   }

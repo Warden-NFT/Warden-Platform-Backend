@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsEmail, IsNumber, IsString, Length, Matches } from 'class-validator';
-import { Role } from 'common/roles';
+import { Role } from '../../../common/roles';
 import { Verification } from '../user.interface';
 
 @Expose()
