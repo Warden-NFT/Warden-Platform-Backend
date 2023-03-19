@@ -24,10 +24,9 @@ import {
   ApiUnauthorizedResponse,
   refs,
 } from '@nestjs/swagger';
-import { EventOrganizerGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
-import { SuccessfulMediaOperationDTO } from 'src/media/dto/media.dto';
-import { StorageService } from 'src/storage/storage.service';
-import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from 'src/utils/httpResponse.dto';
+import { EventOrganizerGuard, JwtAuthGuard } from '../auth/jwt.guard';
+import { SuccessfulMediaOperationDTO } from '../media/dto/media.dto';
+import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from '../utils/httpResponse.dto';
 import {
   TicketDTO,
   TicketCollectionDTO,
@@ -53,7 +52,7 @@ import { TicketService } from './ticket.service';
 @ApiTags('Ticket')
 @Controller('ticket')
 export class TicketController {
-  constructor(private ticketService: TicketService, private storageService: StorageService) {}
+  constructor(private ticketService: TicketService) {}
 
   @Post('collection')
   @ApiCreatedResponse({ type: InsertManyResponseDTO })

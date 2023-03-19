@@ -2,7 +2,7 @@ import { StorageFile, StorageFileWithMetadata } from './storage-file';
 import { DownloadResponse, Storage } from '@google-cloud/storage';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import StorageConfig from './storage-config';
-import { FileData, StoredFileMetadata } from 'src/media/Interfaces/MediaUpload';
+import { FileData, StoredFileMetadata } from '../media/Interfaces/MediaUpload';
 
 @Injectable()
 export class StorageService {

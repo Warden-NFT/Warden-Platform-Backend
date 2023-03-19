@@ -12,7 +12,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as moment from 'moment';
 import { Model } from 'mongoose';
 import { EventService } from '../event/event.service';
-import { MarketEventTicketPreviewsDTO } from 'src/market/dto/market.dto';
+import { MarketEventTicketPreviewsDTO } from '../market/dto/market.dto';
 import { StorageService } from '../storage/storage.service';
 import { throwBadRequestError } from '../utils/httpError';
 import { DeleteResponseDTO } from '../utils/httpResponse.dto';
