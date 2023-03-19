@@ -1,11 +1,11 @@
 import { HttpStatus, HttpException, Injectable } from '@nestjs/common';
 import { RequestOtpResponseDTO } from './otp.dto';
 
-const sdk = require('api')('@thaibulksms/v1.0#fmhq4nl4qv7899');
 @Injectable()
 export class OtpService {
   async getOtp(phoneNumber: string): Promise<RequestOtpResponseDTO> {
     try {
+      const sdk = require('api')('@thaibulksms/v1.0#3s3hunt2tktwn9w2l');
       const res = await sdk.postV2OtpRequest(
         {
           key: process.env.OTP_KEY,
@@ -22,6 +22,7 @@ export class OtpService {
 
   async verifyOtp(token: string, pin: string): Promise<{ status: number; message: string }> {
     try {
+      const sdk = require('api')('@thaibulksms/v1.0#3s3hunt2tktwn9w2l');
       const res = await sdk.postV2OtpVerify(
         {
           key: process.env.OTP_KEY,
