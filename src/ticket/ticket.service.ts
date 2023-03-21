@@ -470,7 +470,7 @@ export class TicketService {
     });
 
     const ownedTicketsCount = _myTickets.length + _myTicketListing.length;
-    const quota = ticketCollection.ticketQuota[ticketType];
+    const quota = ticketCollection.ticketQuota[ticketType] ?? ticketCollection.ticketQuota['general'];
 
     // Check if there are any pending resale ticket purchase approvals
     let resalePurchaseApproved = false;
