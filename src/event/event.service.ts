@@ -80,7 +80,7 @@ export class EventService {
 
   async updateEvent(dto: UpdateEventDTO, eventOrganizerId: string): Promise<Event> {
     try {
-      const event: Event = await this.eventModel.findById(dto.eventId);
+      const event: Event = await this.getEvent(dto.eventId);
       const isEventOwner = event.organizerId === eventOrganizerId;
       if (!isEventOwner) throw new UnauthorizedException('You are not the event owner');
       const updatedEvent = await this.eventModel.findByIdAndUpdate(dto.eventId, dto, { new: true });
