@@ -24,7 +24,7 @@ import {
   ApiUnauthorizedResponse,
   refs,
 } from '@nestjs/swagger';
-import { EventOrganizerGuard, JwtAuthGuard } from '../auth/jwt.guard';
+import { CustomerGuard, EventOrganizerGuard, JwtAuthGuard } from '../auth/jwt.guard';
 import { SuccessfulMediaOperationDTO } from '../media/dto/media.dto';
 import { DeleteResponseDTO, HttpErrorResponse, InsertManyResponseDTO } from '../utils/httpResponse.dto';
 import {
@@ -226,7 +226,7 @@ export class TicketController {
   @ApiOkResponse({ type: ResaleTicketPurchasePermissionDTO })
   @ApiNotFoundResponse({ description: 'TicketCollection with ID ${permissionRequest.ticketCollectionId} not found' })
   @ApiConflictResponse({ description: 'The request has already been made' })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(CustomerGuard)
   async sendResaleTicketPurchaseRequest(@Body() dto: ResaleTicketPurchasePermissionDTO) {
     return this.ticketService.sendResaleTicketPurchaseRequest(dto);
   }
@@ -235,7 +235,7 @@ export class TicketController {
   @ApiOkResponse({ type: ResaleTicketPurchasePermissionDTO })
   @ApiNotFoundResponse({ description: 'TicketCollection with ID ${permissionRequest.ticketCollectionId} not found' })
   @ApiConflictResponse({ description: 'The request has already been made' })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(EventOrganizerGuard)
   async approveResaleTicketPurchaseRequest(@Body() dto: ApproveTicketPurchaseDTO) {
     return this.ticketService.approveResaleTicketPurchaseRequest(dto.ticketCollectionId, dto.permissionId);
   }
