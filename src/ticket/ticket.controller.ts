@@ -184,6 +184,7 @@ export class TicketController {
       dto.eventId,
       dto.ticketCollectionId,
       dto.ticketId,
+      dto.price,
       req.user.uid,
     );
   }

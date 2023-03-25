@@ -299,6 +299,9 @@ export class TicketTransactionDTO {
   @ApiProperty()
   @IsString()
   ticketId: string;
+
+  @ApiProperty({ type: PriceDTO })
+  price: PriceDTO;
 }
 
 @Expose()
