@@ -24,6 +24,7 @@ import {
   TicketQuotaCheckResultDTO,
   ResaleTicketPurchasePermissionDTO,
   RequestResaleTicketPurchasePermissionResult,
+  PriceDTO,
 } from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection, TicketTypeKeyName, TicketTypeKeys } from './interface/ticket.interface';
@@ -408,6 +409,7 @@ export class TicketService {
     eventId: string,
     ticketCollectionId: string,
     ticketId: string,
+    price: PriceDTO,
     userId: string,
   ): Promise<UpdateTicketOwnershipDTO> {
     const _ticket = await this.getTicketByID(eventId, ticketId);
@@ -415,6 +417,7 @@ export class TicketService {
       throw new ForbiddenException('You can only sell your own ticket');
     }
     _ticket.ownerHistory.push(_ticket.ownerHistory[0]);
+    _ticket.price = price;
     await this.updateTicket(_ticket, ticketCollectionId, userId);
     return {
       success: true,
