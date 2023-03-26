@@ -32,7 +32,8 @@ export class MarketService {
         res.save();
       } else {
         const newFeaturedEvents = new this.marketModel(featuredEventIds);
-        return await newFeaturedEvents.save();
+        await newFeaturedEvents.save();
+        return newFeaturedEvents;
       }
     } catch (error) {
       throwBadRequestError(error);
