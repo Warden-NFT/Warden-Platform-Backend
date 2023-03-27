@@ -2,8 +2,8 @@ export const ticketListingMock = {
   organizerInfo: {
     _id: '640d8d27ed4becff87d7f300',
     organizationName: 'Dhanabordee Mekintharanggur',
-    phoneNumber: '0971249955',
-    email: 'pointmekin@gmail.com',
+    phoneNumber: '0912345678',
+    email: 'warden@example.com',
     username: '6238077121',
     password: '$2b$10$xRgKXMGHb0wJy3QoKwVr8uyb0cAyO08j5BwAckpIU1Kx3RMfWFDBi',
     accountType: 'EVENT_ORGANIZER',
@@ -125,8 +125,8 @@ export const ticketListingMockFromTicketId = {
   organizerInfo: {
     _id: '640d8d27ed4becff87d7f300',
     organizationName: 'Dhanabordee Mekintharanggur',
-    phoneNumber: '0971249955',
-    email: 'pointmekin@gmail.com',
+    phoneNumber: '0912345678',
+    email: 'warden@example.com',
     username: '6238077121',
     password: '$2b$10$xRgKXMGHb0wJy3QoKwVr8uyb0cAyO08j5BwAckpIU1Kx3RMfWFDBi',
     accountType: 'EVENT_ORGANIZER',
@@ -248,8 +248,8 @@ export const ticketListingMockFromTicketIdWithoutSubjectOf = {
   organizerInfo: {
     _id: '640d8d27ed4becff87d7f300',
     organizationName: 'Dhanabordee Mekintharanggur',
-    phoneNumber: '0971249955',
-    email: 'pointmekin@gmail.com',
+    phoneNumber: '0912345678',
+    email: 'warden@example.com',
     username: '6238077121',
     password: '$2b$10$xRgKXMGHb0wJy3QoKwVr8uyb0cAyO08j5BwAckpIU1Kx3RMfWFDBi',
     accountType: 'EVENT_ORGANIZER',
