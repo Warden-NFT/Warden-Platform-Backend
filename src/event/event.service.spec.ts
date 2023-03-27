@@ -6,14 +6,27 @@ import { StorageService } from '../storage/storage.service';
 import { EventService } from './event.service';
 import { Event } from './interfaces/event.interface';
 import { UpdateEventDTO } from './event.dto';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 describe('EventService', () => {
+  let mongoServer: MongoMemoryServer;
   let service: EventService;
   let eventModel: Model<Event>;
 
   let eventCollection: Event[] = [];
 
+  const image = {
+    fieldname: 'test',
+    originalname: 'test',
+    size: 20000,
+    filename: 'test',
+    mimetype: 'image/jpeg',
+    buffer: Buffer.from('test image'),
+  } as Express.Multer.File;
+
   beforeEach(async () => {
+    mongoServer = await MongoMemoryServer.create();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EventService,
@@ -22,8 +35,12 @@ describe('EventService', () => {
           provide: getModelToken('Event'),
           useValue: {
             findById: jest.fn().mockReturnThis(),
+            findOne: jest.fn(),
+            deleteMany: jest.fn(),
+            deleteOne: jest.fn(),
+            save: jest.fn(),
             exec: jest.fn(),
-            findByIdAndUpdate: jest.fn().mockReturnThis(),
+            validate: jest.fn().mockResolvedValue(eventCollection[0]),
           },
         },
         {
@@ -244,6 +261,18 @@ describe('EventService', () => {
         ticketCollectionId: '4',
       },
     ];
+
+    await eventModel.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await mongoose.disconnect();
+    await mongoose.connection.close();
+    mongoServer.stop();
+  });
+
+  afterEach(async () => {
+    jest.resetAllMocks();
   });
 
   it('should be defined', () => {
@@ -253,58 +282,67 @@ describe('EventService', () => {
   // TODO: try to implement create()
   describe('Create Event', () => {
     it('Should successfully create an event', async () => {
+      const eventDoc = {
+        data: eventCollection[0],
+        save: jest.fn(),
+      };
+
+      jest.spyOn(eventModel, 'validate').mockResolvedValue(eventDoc as any);
+      const res = await service.createEvent(eventCollection[0]);
+
+      expect(res._id).toBe(eventCollection[0]._id);
+      expect(eventDoc.save).toHaveBeenCalled();
+    });
+  });
+
+  describe('Get Event', () => {
+    it('Should get event with correct ID', async () => {
+      jest.spyOn(eventModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValue(eventCollection[0]),
+      } as any);
+
+      const event = await service.getEvent(eventCollection[0]._id.toString());
+      expect(event._id).toBe(eventCollection[0]._id);
+    });
+
+    it('Should get undefined from incorrect ID', async () => {
+      jest.spyOn(eventModel, 'findById').mockReturnValue({
+        select: jest.fn().mockReturnValue(eventCollection[0]),
+      } as any);
+
+      try {
+        await service.getEvent('999');
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+  });
+
+  describe("Get all organizer's events", () => {
+    it('Should get correctly listed events from ID', async () => {
+      // code does not work
+      const eventOrganizerId = '1';
+      const _collection = eventCollection.filter((event) => event.organizerId === eventOrganizerId);
+
+      jest.spyOn(eventModel, 'find').mockImplementation(
+        () =>
+          ({
+            sort: jest.fn().mockImplementation(() => ({
+              exec: jest.fn().mockResolvedValueOnce(_collection as any),
+            })),
+          } as any),
+      );
+
+      const events = await service.getEventFromEventOrganizer(eventOrganizerId, false);
+      expect(events.map((event) => event?._id.toString())).toBe(_collection.map((event) => event?._id.toString()));
+    });
+
+    it('Should get all listed and unlisted correct events from ID', () => {
       expect(true).toBeTruthy();
     });
 
-    describe('Get Event', () => {
-      it('Should get event with correct ID', async () => {
-        jest.spyOn(eventModel, 'findById').mockReturnValue({
-          exec: jest.fn().mockReturnValue(eventCollection[0]),
-        } as any);
-
-        const event = await service.getEvent(eventCollection[0]._id.toString());
-        expect(event._id).toBe(eventCollection[0]._id);
-      });
-
-      it('Should get undefined from incorrect ID', async () => {
-        jest.spyOn(eventModel, 'findById').mockReturnValue({
-          select: jest.fn().mockReturnValue(eventCollection[0]),
-        } as any);
-
-        try {
-          await service.getEvent('999');
-        } catch (e) {
-          expect(e).toBeInstanceOf(HttpException);
-        }
-      });
-    });
-
-    describe.skip("Get all organizer's events", () => {
-      it('Should get correctly listed events from ID', async () => {
-        // code does not work
-        const eventOrganizerId = '1';
-        const _collection = eventCollection.filter((event) => event.organizerId === eventOrganizerId);
-
-        jest.spyOn(eventModel, 'find').mockImplementation(
-          () =>
-            ({
-              sort: jest.fn().mockImplementation(() => ({
-                exec: jest.fn().mockResolvedValueOnce(_collection as any),
-              })),
-            } as any),
-        );
-
-        const events = await service.getEventFromEventOrganizer(eventOrganizerId, false);
-        expect(events.map((event) => event?._id.toString())).toBe(_collection.map((event) => event?._id.toString()));
-      });
-
-      it('Should get all listed and unlisted correct events from ID', () => {
-        expect(true).toBeTruthy();
-      });
-
-      it('Should get empty events from incorrect ID', () => {
-        expect(true).toBeTruthy();
-      });
+    it('Should get empty events from incorrect ID', () => {
+      expect(true).toBeTruthy();
     });
   });
 
@@ -385,14 +423,42 @@ describe('EventService', () => {
       }
     });
   });
-});
+  describe('Delete event', () => {
+    it('should delete an event', async () => {
+      const eventId = eventCollection[0]._id.toString();
+      const eventOrgId = eventCollection[0].organizerId;
 
-describe('Delete event', () => {
-  // skip
-  expect(true).toBeTruthy();
-});
+      jest.spyOn(eventModel, 'deleteOne').mockReturnValue({ acknowledged: true, deletedCount: 1 } as any);
+      const result = await service.deleteEvent(eventId, eventOrgId);
+      expect(result.acknowledged).toBeTruthy();
+      expect(eventModel.deleteOne).toHaveBeenCalledWith({ _id: eventId, organizerId: eventOrgId });
+    });
 
-describe('Upload event image', () => {
-  // skip
-  expect(true).toBeTruthy();
+    it('should throw a BadRequestException if the event could not be deleted', async () => {
+      const eventId = eventCollection[0]._id.toString();
+      const eventOrgId = eventCollection[0].organizerId;
+
+      jest.spyOn(eventModel, 'deleteOne').mockReturnThis();
+
+      try {
+        await service.deleteEvent(eventId, eventOrgId);
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+  });
+
+  describe('Upload event image', () => {
+    it('should update the event image when the user is the event owner', async () => {
+      await service.createEvent(eventCollection[0]);
+      const result = await service.uploadEventImage('1', eventCollection[0]._id.toString(), image);
+      expect(eventModel.findById).toHaveBeenCalledWith(eventCollection[0]._id);
+      expect(eventModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        eventCollection[0]._id,
+        { image: expect.any(String) },
+        { new: true },
+      );
+      expect(result).toBe('https://storage.googleapis.com/nft-generator-microservice-bucket-test/media/456/cover');
+    });
+  });
 });
