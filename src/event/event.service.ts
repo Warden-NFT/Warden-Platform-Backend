@@ -18,8 +18,9 @@ export class EventService {
   async createEvent(dto: EventDTO): Promise<Event> {
     try {
       await new this.eventModel(dto).validate();
-      const newEvent = await new this.eventModel(dto);
-      return newEvent.save();
+      const newEvent = new this.eventModel(dto);
+      await newEvent.save();
+      return newEvent;
     } catch (error) {
       throw new HttpException(
         {
