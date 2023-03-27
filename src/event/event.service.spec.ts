@@ -325,7 +325,6 @@ describe('EventService', () => {
       );
 
       const events = await service.getEventFromEventOrganizer(eventOrganizerId, false);
-      console.log(events.map((event) => event._id));
       expect(events.map((event) => event?._id)).toEqual(_collection.map((event) => event?._id));
     });
 
