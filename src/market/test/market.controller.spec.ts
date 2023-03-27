@@ -1,12 +1,12 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from '../auth/auth.service';
-import { StorageService } from '../storage/storage.service';
-import { EventService } from '../event/event.service';
-import { TicketService } from '../ticket/ticket.service';
-import { UserService } from '../user/user.service';
-import { MarketController } from './market.controller';
-import { MarketService } from './market.service';
+import { AuthService } from '../../auth/auth.service';
+import { StorageService } from '../../storage/storage.service';
+import { EventService } from '../../event/event.service';
+import { TicketService } from '../../ticket/ticket.service';
+import { UserService } from '../../user/user.service';
+import { MarketController } from '../market.controller';
+import { MarketService } from '../market.service';
 import { JwtService } from '@nestjs/jwt';
 
 describe('MarketController', () => {
