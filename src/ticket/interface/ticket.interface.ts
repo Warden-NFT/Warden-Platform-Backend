@@ -49,7 +49,6 @@ export interface TicketCollection {
   currency: Currency;
   ticketQuota: TicketQuota;
   generationMethod: TicketGenerationMode;
-  hasUsed: boolean;
   resaleTicketPurchasePermission: ResaleTicketPurchasePermission[];
 }
 
