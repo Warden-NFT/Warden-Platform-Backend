@@ -9,10 +9,14 @@ import { TicketCollection } from './interface/ticket.interface';
 import { TicketService } from './ticket.service';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { Event } from '../event/interfaces/event.interface';
+import * as moment from 'moment';
+import { EventDB, TicketDB } from './ticket.mock';
 
 describe('TicketService', () => {
   let ticketService: TicketService;
   let ticketCollectionModel: Model<TicketCollection>;
+  let eventModel: Model<Event>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,6 +32,8 @@ describe('TicketService', () => {
           useValue: {
             find: jest.fn(),
             exec: jest.fn(),
+            findById: jest.fn(),
+            save: jest.fn(),
           },
         },
         {
@@ -35,6 +41,7 @@ describe('TicketService', () => {
           useValue: {
             find: jest.fn(),
             exec: jest.fn(),
+            findById: jest.fn(),
           },
         },
         {
@@ -63,6 +70,7 @@ describe('TicketService', () => {
 
     ticketService = module.get<TicketService>(TicketService);
     ticketCollectionModel = module.get<Model<TicketCollection>>(getModelToken('TicketCollection'));
+    eventModel = module.get<Model<Event>>(getModelToken('Event'));
   });
 
   describe('getTicketsOfUser', () => {
@@ -110,6 +118,80 @@ describe('TicketService', () => {
       });
 
       await expect(ticketService.getTicketsOfUser(walletAddress)).rejects.toThrow(HttpException);
+    });
+  });
+
+  describe('Ticket Utilization', () => {
+    it('should throw exception from unknown eventId', async () => {
+      jest.spyOn(ticketCollectionModel, 'findById').mockReturnValue(undefined as any);
+      try {
+        await ticketService.utilizeTicket('1', '-1', '1', new Date());
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+
+    it('should throw exception from unknown ticketId', async () => {
+      jest.spyOn(eventModel, 'findById').mockReturnValue(undefined as any);
+      try {
+        await ticketService.utilizeTicket('-1', '1', '1', new Date());
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+
+    it('should have QR code time exceed', async () => {
+      const time = moment().add(16, 'second');
+      try {
+        await ticketService.utilizeTicket('-1', '-1', '-1', time.toDate());
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+        expect(e.response.message).toBe('qr_code_time_exceed');
+      }
+    });
+
+    it('should have succesfully utilize ticket', async () => {
+      const ticketCollectionDoc = {
+        ...TicketDB[0],
+        save: jest.fn().mockReturnValue(TicketDB[0]),
+      };
+
+      jest.spyOn(eventModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValue(EventDB[0]),
+      } as any);
+
+      jest.spyOn(ticketCollectionModel, 'findById').mockReturnValue(ticketCollectionDoc as any);
+      jest.spyOn(ticketCollectionDoc, 'save').mockReturnValue(TicketDB[0]);
+
+      const time = moment();
+      const result = await ticketService.utilizeTicket('1', '1', '1', time.toDate());
+      expect(ticketCollectionModel.findById).toBeCalled();
+      expect(eventModel.findById).toBeCalled();
+      expect(result.success).toBeTruthy();
+    });
+
+    it('should have unsuccessfully utilize ticket', async () => {
+      const ticketCollectionDoc = {
+        ...TicketDB[0],
+        save: jest.fn().mockReturnValue(TicketDB[0]),
+      };
+
+      jest.spyOn(eventModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValue(EventDB[0]),
+      } as any);
+
+      jest.spyOn(ticketCollectionModel, 'findById').mockReturnValue(ticketCollectionDoc as any);
+      jest.spyOn(ticketCollectionDoc, 'save').mockReturnValue(TicketDB[0]);
+
+      const time = moment();
+      try {
+        await ticketService.utilizeTicket('1', '2', '1', time.toDate());
+        expect(ticketCollectionModel.findById).toBeCalled();
+        expect(eventModel.findById).toBeCalled();
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+        expect(e.response.message).toBe('ticket_already_used');
+      }
     });
   });
 });
