@@ -321,6 +321,10 @@ export class TicketUtilizeDTO {
   @ApiProperty()
   @IsString()
   walletAddress: string;
+
+  @ApiProperty()
+  @IsDate()
+  generateSince: Date;
 }
 
 @Expose()

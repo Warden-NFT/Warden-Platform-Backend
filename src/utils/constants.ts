@@ -1,3 +1,5 @@
 export const FILE_SIZES = {
   TEN_MEGABYTES: 10485760,
 };
+
+export const TICKET_UTILIZE_TIME_LIMIT_SEC = 15;
