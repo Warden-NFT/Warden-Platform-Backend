@@ -194,7 +194,7 @@ export class TicketController {
   @ApiForbiddenResponse({ description: 'You do not have sufficient permission to admit user' })
   @UseGuards(EventOrganizerGuard)
   async ticketAdmission(@Body() dto: TicketUtilizeDTO, @Req() req) {
-    return await this.ticketService.utilizeTicket(dto.eventId, dto.ticketId, dto.userId);
+    return await this.ticketService.utilizeTicket(dto.eventId, dto.ticketId, dto.userId, dto.generateSince);
   }
 
   @Get('/admission/check')
