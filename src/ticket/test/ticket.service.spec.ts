@@ -60,6 +60,7 @@ describe('TicketService', () => {
               ...ticketCollectionMock,
             }),
             findById: jest.fn().mockReturnThis(),
+            findByIdAndUpdate: jest.fn().mockReturnThis(),
           },
         },
         {
@@ -184,11 +185,11 @@ describe('TicketService', () => {
       // Arrange
       const eventId = 'mock-event-id';
       const ticketCollectionId = 'mock-ticket-collection-id';
-      const ticketId = 'mock-ticket-id';
+      const ticketId = 'mock-ticket-collection-id';
       const ticketCollection = {
         _id: ticketCollectionId,
         tickets: {
-          standard: [{ _id: ticketId, name: 'Mock Ticket' }],
+          general: [{ _id: ticketId, name: 'Mock Ticket' }],
         },
       };
       const event = { _id: eventId, ticketCollectionId };
@@ -302,6 +303,62 @@ describe('TicketService', () => {
       });
 
       await expect(ticketService.getTicketsOfUser(walletAddress)).rejects.toThrow(HttpException);
+    });
+  });
+
+  describe('updateTicketCollection', () => {
+    it('should update the ticket collection', async () => {
+      // Arrange
+      const ownerId = '640d8d27ed4becff87d7f300';
+      const ticketCollectionId = '64104bbf1ba3a237dd0e51d1';
+      const ticketCollection = ticketCollectionMock;
+      const updateTicketCollectionDto = { tickets: { standard: [] } };
+      jest.spyOn(ticketCollectionModel, 'findById').mockResolvedValue(ticketCollection);
+      jest.spyOn(ticketCollectionModel, 'findByIdAndUpdate').mockResolvedValue(ticketCollection);
+
+      // Act
+      const result = await ticketService.updateTicketCollection(ticketCollectionMock as any, ownerId);
+
+      // Assert
+      expect(result._id).toEqual(ticketCollectionId);
+    });
+
+    it('should throw NotFoundException if ticket collection is not found', async () => {
+      // Arrange
+      const ticketCollectionId = '64104bbf1ba3a237dd0e51d1';
+      const updateTicketCollectionDto = { tickets: { general: [] } };
+      jest.spyOn(ticketCollectionModel, 'findByIdAndUpdate').mockResolvedValue(null);
+      jest.spyOn(ticketCollectionModel, 'findById').mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(
+        ticketService.updateTicketCollection(ticketCollectionMock as any, updateTicketCollectionDto as any),
+      ).rejects.toThrowError(new NotFoundException(`Ticket set #${ticketCollectionId} not found`));
+    });
+
+    it('should throw HttpException if an error occurs', async () => {
+      // Arrange
+      const ticketCollectionId = '64104bbf1ba3a237dd0e51d1';
+      const updateTicketCollectionDto = { tickets: { general: [] }, ownerId: '640d8d27ed4becff87d7f300' };
+      const error = new Error('Some error');
+      jest.spyOn(ticketCollectionModel, 'findByIdAndUpdate').mockRejectedValue(error);
+      jest.spyOn(ticketCollectionModel, 'findById').mockResolvedValue(updateTicketCollectionDto as any);
+
+      // Act & Assert
+      await expect(
+        ticketService.updateTicketCollection(ticketCollectionMock as any, '640d8d27ed4becff87d7f300'),
+      ).rejects.toThrowError(
+        new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: error.message,
+          },
+          HttpStatus.BAD_REQUEST,
+        ),
+      );
+      expect(ticketCollectionModel.findByIdAndUpdate).toHaveBeenCalledWith(ticketCollectionId, ticketCollectionMock, {
+        new: true,
+      });
     });
   });
 });

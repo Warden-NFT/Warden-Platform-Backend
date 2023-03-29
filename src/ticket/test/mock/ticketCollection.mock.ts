@@ -1,7 +1,5 @@
 export const ticketCollectionMock = {
-  _id: {
-    $oid: '64104bbf1ba3a237dd0e51d1',
-  },
+  _id: '64104bbf1ba3a237dd0e51d1',
   tickets: {
     general: [
       {
