@@ -27,12 +27,13 @@ export class MarketService {
   async setFeaturedEvents(featuredEventIds): Promise<Market> {
     try {
       const res = await this.marketModel.findOne();
-      if (res) {
+      if (res && res.featuredEvents) {
         res.featuredEvents = featuredEventIds;
         res.save();
       } else {
         const newFeaturedEvents = new this.marketModel(featuredEventIds);
-        return await newFeaturedEvents.save();
+        await newFeaturedEvents.save();
+        return newFeaturedEvents;
       }
     } catch (error) {
       throwBadRequestError(error);
@@ -144,7 +145,7 @@ export class MarketService {
       // Get ticket previews for each event
       const eventTicketPreviews = await Promise.all(
         events.map(async (_event) => {
-          return await this.ticketService.getTicketPreviews(_event._id.toString());
+          if (_event.ticketCollectionId) return await this.ticketService.getTicketPreviews(_event._id.toString());
         }),
       );
 
@@ -189,13 +190,14 @@ export class MarketService {
     const filterByWalletAddress = (ticket) => {
       return ticket.ownerHistory[ticket.ownerHistory.length - 1] === walletAddress;
     };
-
-    marketTickets.ticketCollection.tickets.general =
-      marketTickets.ticketCollection.tickets.general.filter(filterByWalletAddress);
-    marketTickets.ticketCollection.tickets.vip =
-      marketTickets.ticketCollection.tickets.vip.filter(filterByWalletAddress);
-    marketTickets.ticketCollection.tickets.reservedSeat =
-      marketTickets.ticketCollection.tickets.reservedSeat.filter(filterByWalletAddress);
+    if (marketTickets.ticketCollection && marketTickets.ticketCollection.tickets) {
+      marketTickets.ticketCollection.tickets.general =
+        marketTickets.ticketCollection.tickets.general.filter(filterByWalletAddress);
+      marketTickets.ticketCollection.tickets.vip =
+        marketTickets.ticketCollection.tickets.vip.filter(filterByWalletAddress);
+      marketTickets.ticketCollection.tickets.reservedSeat =
+        marketTickets.ticketCollection.tickets.reservedSeat.filter(filterByWalletAddress);
+    }
 
     return marketTickets;
   }
@@ -241,7 +243,7 @@ export class MarketService {
 
     // Ticket
     const ticket = await this.ticketService.getTicketByID(event._id.toString(), ticketId);
-    if (!ticketCollection) throw new NotFoundException('Ticket with the given _id is not found');
+    if (!ticket) throw new NotFoundException('Ticket with the given _id is not found');
 
     // Event Organizer Info
     const _organizerInfo = await this.userService.findById(event.organizerId);

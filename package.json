@@ -37,6 +37,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "moment": "^2.29.4",
+    "mongodb-memory-server": "^8.12.1",
     "mongoose": "^6.8.2",
     "mongoose-unique-validator": "^3.1.0",
     "passport": "^0.6.0",
@@ -85,7 +86,7 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.service.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

@@ -24,10 +24,12 @@ import {
   TicketQuotaCheckResultDTO,
   ResaleTicketPurchasePermissionDTO,
   RequestResaleTicketPurchasePermissionResult,
+  PriceDTO,
 } from './dto/ticket.dto';
 import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO } from './dto/ticketTransaction.dto';
 import { Ticket, TicketCollection, TicketTypeKeyName, TicketTypeKeys } from './interface/ticket.interface';
 import { UserService } from '../user/user.service';
+import { TICKET_UTILIZE_TIME_LIMIT_SEC } from '../utils/constants';
 
 @Injectable()
 export class TicketService {
@@ -100,11 +102,12 @@ export class TicketService {
     }
     const ticketCollectionId = event.ticketCollectionId;
     try {
-      const ticketCollection = await this.ticketCollectionModel.findById(ticketCollectionId);
-      if (!ticketCollection) throw new NotFoundException(`Ticket #${ticketCollectionId} not found`);
-      let matchedTicket;
+      const ticketCollection = await this.getTicketCollectionByID(ticketCollectionId);
+      let matchedTicket: Ticket;
       TicketTypeKeys.forEach((key) => {
-        const matchingTicket = ticketCollection.tickets[key].find((ticket) => ticket._id.toString() === ticketId);
+        const matchingTicket = ticketCollection.tickets[key].find(
+          (ticket: Ticket) => ticket._id.toString() === ticketId,
+        );
         if (matchingTicket) {
           matchedTicket = matchingTicket;
         }
@@ -408,6 +411,7 @@ export class TicketService {
     eventId: string,
     ticketCollectionId: string,
     ticketId: string,
+    price: PriceDTO,
     userId: string,
   ): Promise<UpdateTicketOwnershipDTO> {
     const _ticket = await this.getTicketByID(eventId, ticketId);
@@ -415,6 +419,7 @@ export class TicketService {
       throw new ForbiddenException('You can only sell your own ticket');
     }
     _ticket.ownerHistory.push(_ticket.ownerHistory[0]);
+    _ticket.price = price;
     await this.updateTicket(_ticket, ticketCollectionId, userId);
     return {
       success: true,
@@ -422,12 +427,26 @@ export class TicketService {
   }
 
   // Update ticket's hasUsed status
-  async utilizeTicket(eventId: string, ticketId: string, ownerId: string) {
+  async utilizeTicket(eventId: string, ticketId: string, ownerId: string, generateSince: Date) {
+    const now = moment();
+    const limit = moment(now).add(TICKET_UTILIZE_TIME_LIMIT_SEC, 'seconds');
+    const timeDiff = moment.duration(limit.diff(generateSince)).asSeconds();
+
+    if (timeDiff <= 0) {
+      throw new BadRequestException({
+        message: 'qr_code_time_exceed',
+      });
+    }
+
     const _ticket = await this.getTicketByID(eventId, ticketId);
     const event = await this.eventService.getEvent(eventId);
 
     if (!_ticket.hasUsed) {
       _ticket.hasUsed = true;
+    } else {
+      throw new BadRequestException({
+        message: 'ticket_already_used',
+      });
     }
 
     await this.updateTicket(_ticket, event.ticketCollectionId, ownerId, false);
@@ -470,7 +489,7 @@ export class TicketService {
     });
 
     const ownedTicketsCount = _myTickets.length + _myTicketListing.length;
-    const quota = ticketCollection.ticketQuota[ticketType];
+    const quota = ticketCollection.ticketQuota[ticketType] ?? ticketCollection.ticketQuota['general'];
 
     // Check if there are any pending resale ticket purchase approvals
     let resalePurchaseApproved = false;

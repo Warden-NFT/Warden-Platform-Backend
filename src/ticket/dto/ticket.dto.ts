@@ -299,6 +299,9 @@ export class TicketTransactionDTO {
   @ApiProperty()
   @IsString()
   ticketId: string;
+
+  @ApiProperty({ type: PriceDTO })
+  price: PriceDTO;
 }
 
 @Expose()
@@ -318,6 +321,10 @@ export class TicketUtilizeDTO {
   @ApiProperty()
   @IsString()
   walletAddress: string;
+
+  @ApiProperty()
+  @IsDate()
+  generateSince: Date;
 }
 
 @Expose()

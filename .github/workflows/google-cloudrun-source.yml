@@ -18,7 +18,7 @@ env:
   GUARD_PASSWORD: 1234
   MONGODB_URI: mongodb+srv://wardennftplatform:WardenNFT2022@cluster0.1sedrpx.mongodb.net/Warden?retryWrites=true&w=majority
   POLYGON_MUMBAI: https://rpc-mumbai.maticvigil.com/
-  OTP_KEY: 1754736871936836
+  OTP_KEY: "1754736871936836"
   OTP_SECRETKEY: cae0862644ee0c89f95fa95f5487caea
 
 jobs:

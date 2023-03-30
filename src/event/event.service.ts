@@ -18,8 +18,9 @@ export class EventService {
   async createEvent(dto: EventDTO): Promise<Event> {
     try {
       await new this.eventModel(dto).validate();
-      const newEvent = await new this.eventModel(dto);
-      return newEvent.save();
+      const newEvent = new this.eventModel(dto);
+      await newEvent.save();
+      return newEvent;
     } catch (error) {
       throw new HttpException(
         {
@@ -80,7 +81,7 @@ export class EventService {
 
   async updateEvent(dto: UpdateEventDTO, eventOrganizerId: string): Promise<Event> {
     try {
-      const event: Event = await this.eventModel.findById(dto.eventId);
+      const event: Event = await this.getEvent(dto.eventId);
       const isEventOwner = event.organizerId === eventOrganizerId;
       if (!isEventOwner) throw new UnauthorizedException('You are not the event owner');
       const updatedEvent = await this.eventModel.findByIdAndUpdate(dto.eventId, dto, { new: true });
