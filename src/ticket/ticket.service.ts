@@ -105,19 +105,11 @@ export class TicketService {
       const ticketCollection = await this.getTicketCollectionByID(ticketCollectionId);
       let matchedTicket: Ticket;
       TicketTypeKeys.forEach((key) => {
-<<<<<<< HEAD
-        const matchingTicket = ticketCollection.tickets[key].find(
-          (ticket: Ticket) => ticket._id.toString() === ticketId,
-        );
-        if (matchingTicket) {
-          matchedTicket = matchingTicket;
-=======
         if (ticketCollection.tickets[key]) {
           const matchingTicket = ticketCollection.tickets[key].find((ticket) => ticket._id.toString() === ticketId);
           if (matchingTicket) {
             matchedTicket = matchingTicket;
           }
->>>>>>> 5f2de8d (feat: add ticket service tests)
         }
       });
       if (!matchedTicket) {
