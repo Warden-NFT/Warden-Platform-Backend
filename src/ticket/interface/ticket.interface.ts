@@ -64,6 +64,8 @@ export interface Ticket {
   ticketType: TicketType;
   price: PriceDTO;
   hasUsed: boolean;
+  eventId?: string;
+  startDate?: Date;
 }
 
 export interface VIPTicket extends Ticket {
