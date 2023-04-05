@@ -59,6 +59,14 @@ export const TicketSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
+  eventId: {
+    type: String,
+    required: false,
+  },
+  startDate: {
+    type: Date,
+    required: false,
+  },
 });
 
 export const TicketCollectionSchema = new mongoose.Schema({

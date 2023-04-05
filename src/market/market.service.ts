@@ -70,10 +70,14 @@ export class MarketService {
           .find({ _id: { $gt: new mongoose.Types.ObjectId(createdOnBefore) } })
           .sort({ _id: 'desc' })
           .limit(limit);
-        return latestEvents;
+        return latestEvents.filter((_event) => {
+          return Boolean(_event.smartContractAddress) && new Date(_event.startDate) > new Date();
+        });
       } else {
         const latestEvents = await this.eventModel.find().sort({ _id: 'desc' }).limit(limit);
-        return latestEvents;
+        return latestEvents.filter((_event) => {
+          return Boolean(_event.smartContractAddress) && new Date(_event.startDate) > new Date();
+        });
       }
     } catch (error) {
       throwBadRequestError(error);
