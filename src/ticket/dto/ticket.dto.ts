@@ -109,6 +109,14 @@ export class TicketDTO {
 
   @ApiProperty()
   hasUsed: boolean;
+
+  @ApiProperty()
+  @IsString()
+  eventId?: string;
+
+  @ApiProperty()
+  @IsDate()
+  startDate?: Date;
 }
 
 export class VIPTicketDTO extends TicketDTO {

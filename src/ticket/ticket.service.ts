@@ -490,10 +490,12 @@ export class TicketService {
       ...ticketCollection.tickets.reservedSeat.map((ticket) => ticket._id.toString()),
     ];
     const _myTickets = myTickets.filter((ticket) => {
-      return allTickets.includes(ticket._id.toString());
+      console.log(ticket.ticketType, ticketType);
+      return allTickets.includes(ticket._id.toString()) && TicketTypeKeyName[ticket.ticketType] === ticketType;
     });
     const _myTicketListing = myTicketListing.filter((ticket) => {
-      return allTickets.includes(ticket._id.toString());
+      console.log(ticket.ticketType, ticketType);
+      return allTickets.includes(ticket._id.toString()) && TicketTypeKeyName[ticket.ticketType] === ticketType;
     });
 
     const ownedTicketsCount = _myTickets.length + _myTicketListing.length;
