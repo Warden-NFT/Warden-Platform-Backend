@@ -8,6 +8,7 @@ import {
   SuccessfulUserModificationDTO,
   SuccessfulVerificationDTO,
   UserGeneralInfoDTO,
+  updateAssociatedWalletAddressDTO,
 } from './dto/user.dto';
 import { CustomerUser, EventOrganizerUser, User, Verification, VerificationStatus } from './user.interface';
 import * as bcrypt from 'bcrypt';
@@ -229,6 +230,36 @@ export class UserService {
       const user = await this.findById(userId);
       if (!user) throw new NotFoundException(`User id #${userId} not found`);
       return user;
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
+  async updateAssociatedWalletAddress(
+    userId: string,
+    walletAddress: string,
+  ): Promise<updateAssociatedWalletAddressDTO> {
+    try {
+      const user = await this.findById(userId);
+      if (!user) throw new NotFoundException(`User id #${userId} not found`);
+
+      // Check if the wallet address is already associated with the user
+      // If yes, don't do anything
+      // If no, add the wallet address to the associatedWallet array
+      if (user.associatedWallet.includes(walletAddress))
+        return {
+          status: HttpStatus.NOT_MODIFIED,
+          message: 'No changes made to the associated wallets list',
+        };
+      else {
+        user.associatedWallet = [...user.associatedWallet, walletAddress];
+      }
+
+      await user.save();
+      return {
+        status: HttpStatus.CREATED,
+        message: 'The user has been created successfully',
+      };
     } catch (error) {
       throwBadRequestError(error);
     }

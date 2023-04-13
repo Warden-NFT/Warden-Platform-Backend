@@ -15,6 +15,7 @@ class UserSchemaClass extends mongoose.Schema {
       password: String,
       verificationStatus: verificationSchemaType,
       profileImage: String,
+      associatedWallet: [],
     });
 
     this.methods.editAccountInfo = function (updt): void {

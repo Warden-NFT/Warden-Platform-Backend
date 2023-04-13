@@ -133,7 +133,13 @@ export class TicketController {
   @ApiBadRequestResponse({ type: HttpErrorResponse, description: 'Provided data is incorrectly formatted' })
   @UseGuards(JwtAuthGuard)
   async updateTicket(@Body() updateTicketDTO: UpdateTicketDTO, @Req() req) {
-    return this.ticketService.updateTicket(updateTicketDTO.ticket, updateTicketDTO.ticketCollectionId, req.user.uid);
+    return this.ticketService.updateTicket(
+      updateTicketDTO.ticket,
+      updateTicketDTO.ticketCollectionId,
+      req.user.uid,
+      false,
+      updateTicketDTO.walletAddress,
+    );
   }
 
   @Delete('/collection')
@@ -149,12 +155,14 @@ export class TicketController {
   @Post('/transaction/permission')
   @ApiOkResponse({ type: TicketTransactionPermissionDTO })
   @ApiBadRequestResponse({ description: 'Unable to get the ticket transaction permission' })
-  async checkTicketPurchasePermission(@Body() dto: TicketTransactionDTO) {
+  @UseGuards(JwtAuthGuard)
+  async checkTicketPurchasePermission(@Body() dto: TicketTransactionDTO, @Req() req) {
     return this.ticketService.checkTicketPurchasePermission(
       dto.walletAddress,
       dto.eventId,
       dto.ticketCollectionId,
       dto.ticketId,
+      req.user.uid,
     );
   }
 
@@ -214,11 +222,13 @@ export class TicketController {
     @Query('ticketCollectionId') ticketCollectionId: string,
     @Query('ticketType') ticketType: string,
     @Query('smartContractTicketId') smartContractTicketId: string,
+    @Req() req,
   ) {
     return await this.ticketService.checkTicketPurchaseQuota(
       address,
       ticketCollectionId,
       ticketType,
+      req.user.uid,
       parseInt(smartContractTicketId),
     );
   }
