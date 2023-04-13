@@ -30,6 +30,7 @@ import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO 
 import { Ticket, TicketCollection, TicketTypeKeyName, TicketTypeKeys } from './interface/ticket.interface';
 import { UserService } from '../user/user.service';
 import { TICKET_UTILIZE_TIME_LIMIT_SEC } from '../utils/constants';
+import { CustomerUser } from 'src/user/user.interface';
 
 @Injectable()
 export class TicketService {
@@ -203,6 +204,63 @@ export class TicketService {
     }
   }
 
+  // Get all tickets belonging to a person including those they own and those they are selling
+  async getTicketsOfUserFromMultipleWalletAddresses(walletAddressList: string[]): Promise<MyTicketsDTO> {
+    try {
+      const ticketCollections = await this.ticketCollectionModel.find().exec();
+      const allTickets = ticketCollections.flatMap((tc) => [
+        ...tc.tickets.general,
+        ...tc.tickets.vip,
+        ...tc.tickets.reservedSeat,
+      ]);
+
+      let myTickets = [];
+      let myTicketListing = [];
+
+      walletAddressList.forEach((walletAddress) => {
+        // this array contains all the tickets the user currently owns
+        const _myTickets = allTickets.filter((ticket) => {
+          const ownerHistory = ticket.ownerHistory;
+          if (ownerHistory && ownerHistory.length > 0) {
+            return ownerHistory[ownerHistory.length - 1] === walletAddress;
+          }
+          return false;
+        });
+
+        // this array contains all the tickets the user currnely lists for sale
+        const _myTicketListing = allTickets.filter((ticket) => {
+          const ownerHistory = ticket.ownerHistory;
+          if (ownerHistory && ownerHistory.length > 0) {
+            return (
+              ownerHistory[ownerHistory.length - 1] === ownerHistory[0] &&
+              ownerHistory[ownerHistory.length - 2] === walletAddress
+            );
+          }
+          return false;
+        });
+
+        myTickets = [...myTickets, ..._myTickets];
+        myTicketListing = [...myTicketListing, ..._myTicketListing];
+      });
+
+      // remove all duplicates in myTickets
+      myTickets = myTickets.filter((ticket, index, self) => {
+        return self.findIndex((t) => t._id.toString() === ticket._id.toString()) === index;
+      });
+      // remove all duplicates in myTicketListing
+      myTicketListing = myTicketListing.filter((ticket, index, self) => {
+        return self.findIndex((t) => t._id.toString() === ticket._id.toString()) === index;
+      });
+
+      return {
+        myTickets,
+        myTicketListing,
+      };
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
   // Update ticket set details
   async updateTicketCollection(ticketCollection: TicketCollectionDTO, ownerId: string): Promise<TicketCollection> {
     try {
@@ -269,7 +327,17 @@ export class TicketService {
     ticketCollectionId: string,
     ownerId: string,
     isTransactionUpdate?: boolean,
+    walletAddress?: string,
   ): Promise<TicketDTO | VIPTicketDTO> {
+    // Update the wallet address associated to the user
+    try {
+      if (walletAddress) {
+        this.userService.updateAssociatedWalletAddress(ownerId, walletAddress);
+      }
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+
     try {
       const ticketToBeUpdated = await this.ticketCollectionModel.findById(ticketCollectionId);
       if (!ticketToBeUpdated) {
@@ -341,6 +409,7 @@ export class TicketService {
     eventId: string,
     ticketCollectionId: string,
     ticketId: string,
+    userId: string,
   ): Promise<TicketTransactionPermissionDTO> {
     try {
       const _ticket = await this.getTicketByID(eventId, ticketId);
@@ -352,6 +421,7 @@ export class TicketService {
         walletAddress,
         ticketCollectionId,
         TicketTypeKeyName[_ticket.ticketType],
+        userId,
       );
       if (!_ticketQuotaCheckResult.allowPurchase) {
         return { allowed: false, reason: 'Maximum ticket quota reached' };
@@ -391,7 +461,13 @@ export class TicketService {
     ticketId: string,
     userId: string,
   ): Promise<void> {
-    const permission = await this.checkTicketPurchasePermission(walletAddress, eventId, ticketCollectionId, ticketId);
+    const permission = await this.checkTicketPurchasePermission(
+      walletAddress,
+      eventId,
+      ticketCollectionId,
+      ticketId,
+      userId,
+    );
     if (!permission.allowed) {
       throw new ForbiddenException(permission.reason);
     }
@@ -470,9 +546,16 @@ export class TicketService {
     address: string,
     ticketCollectionId: string,
     ticketType: string,
+    userId: string,
     smartContractTicketId?: number,
   ): Promise<TicketQuotaCheckResultDTO> {
-    const ownedTicketsResponse: MyTicketsDTO = await this.getTicketsOfUser(address);
+    // Get the associated wallets of the user
+    const user: CustomerUser = (await this.userService.findById(userId)) as CustomerUser;
+    const associatedWalletAddresses = user.associatedWallet;
+
+    const ownedTicketsResponse: MyTicketsDTO = await this.getTicketsOfUserFromMultipleWalletAddresses(
+      associatedWalletAddresses,
+    );
     const { myTickets, myTicketListing } = ownedTicketsResponse;
 
     const ticketCollection: TicketCollection = await this.getTicketCollectionByID(ticketCollectionId);
@@ -481,16 +564,17 @@ export class TicketService {
       ...ticketCollection.tickets.vip.map((ticket) => ticket._id.toString()),
       ...ticketCollection.tickets.reservedSeat.map((ticket) => ticket._id.toString()),
     ];
+
+    // Count owned tickets
+    let ownedTicketsCount = 0;
     const _myTickets = myTickets.filter((ticket) => {
-      console.log(ticket.ticketType, ticketType);
       return allTickets.includes(ticket._id.toString()) && TicketTypeKeyName[ticket.ticketType] === ticketType;
     });
     const _myTicketListing = myTicketListing.filter((ticket) => {
-      console.log(ticket.ticketType, ticketType);
       return allTickets.includes(ticket._id.toString()) && TicketTypeKeyName[ticket.ticketType] === ticketType;
     });
+    ownedTicketsCount = _myTickets.length + _myTicketListing.length;
 
-    const ownedTicketsCount = _myTickets.length + _myTicketListing.length;
     const quota = ticketCollection.ticketQuota[ticketType] ?? ticketCollection.ticketQuota['general'];
 
     // Check if there are any pending resale ticket purchase approvals

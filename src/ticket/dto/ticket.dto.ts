@@ -288,6 +288,10 @@ export class UpdateTicketDTO {
   @ApiProperty()
   @IsString()
   ticketCollectionId: string;
+
+  @ApiProperty()
+  @IsString()
+  walletAddress: string;
 }
 
 @Expose()
