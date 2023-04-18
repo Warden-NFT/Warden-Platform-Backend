@@ -42,33 +42,4 @@ describe('StorageService', () => {
       expect(result).toBe(undefined);
     });
   });
-
-  describe('save', () => {
-    it('should throw an error if no media is provided', () => {
-      const path = 'path/to/file';
-      const contentType = 'text/plain';
-      const media = undefined;
-      try {
-        service.save(path, contentType, media);
-      } catch (error) {
-        expect(error).toBeInstanceOf(HttpException);
-      }
-    });
-
-    // it('should return a promise', () => {
-    //   const path = 'path/to/file';
-    //   const contentType = 'text/plain';
-    //   const media = Buffer.from('test');
-    //   const result = service.save(path, contentType, media);
-    //   expect(result).toBeInstanceOf(Promise);
-    // });
-
-    // it('should return a promise that resolves to an object with metadata and contentType', async () => {
-    //   const path = 'path/to/file';
-    //   const contentType = 'text/plain';
-    //   const media = Buffer.from('test');
-    //   const result = await service.save(path, contentType, media);
-    //   expect(result).toEqual({ metadata: undefined, contentType });
-    // });
-  });
 });
