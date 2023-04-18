@@ -30,7 +30,7 @@ import { MyTicketsDTO, TicketTransactionPermissionDTO, UpdateTicketOwnershipDTO 
 import { Ticket, TicketCollection, TicketTypeKeyName, TicketTypeKeys } from './interface/ticket.interface';
 import { UserService } from '../user/user.service';
 import { TICKET_UTILIZE_TIME_LIMIT_SEC } from '../utils/constants';
-import { CustomerUser } from 'src/user/user.interface';
+import { CustomerUser } from '../user/user.interface';
 
 @Injectable()
 export class TicketService {
