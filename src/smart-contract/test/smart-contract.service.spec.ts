@@ -1,17 +1,15 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
-import { SmartContractABI, SmartContractBytecode } from '../interface/smart-contract.interface';
-import { SmartContractABISchama } from '../schema/smart-contract.schema';
 import { SmartContractService } from '../smart-contract.service';
-import { HttpException, NotFoundException } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
 
 describe('SmartContractService', () => {
   let service: SmartContractService;
   let scAbiModel: Model<SmartContractABI>;
   let scByteCode: Model<SmartContractBytecode>;
 
-  const db = require('./db.ts');
+  const db = require('../../../test/db.ts');
   beforeAll(async () => await db.connect());
   afterEach(async () => await db.clearDatabase());
   afterAll(async () => await db.closeDatabase());
