@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import mongoose, { Model } from 'mongoose';
@@ -7,13 +7,28 @@ import { EventService } from './event.service';
 import { Event } from './interfaces/event.interface';
 import { UpdateEventDTO } from './event.dto';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { Readable } from 'stream';
 
 describe('EventService', () => {
   let mongoServer: MongoMemoryServer;
   let service: EventService;
+  let storageService: StorageService;
   let eventModel: Model<Event>;
 
   let eventCollection: Event[] = [];
+
+  class EventModel {
+    constructor(private data) {}
+    static find = jest.fn().mockReturnThis();
+    static findById = jest.fn().mockReturnThis();
+    static findByIdAndUpdate = jest.fn();
+    static findOne = jest.fn();
+    static deleteMany = jest.fn();
+    static deleteOne = jest.fn();
+    validate = jest.fn();
+    exec = jest.fn();
+    save = jest.fn();
+  }
 
   const image = {
     fieldname: 'test',
@@ -33,17 +48,7 @@ describe('EventService', () => {
         StorageService,
         {
           provide: getModelToken('Event'),
-          useValue: {
-            find: jest.fn().mockReturnThis(),
-            findById: jest.fn().mockReturnThis(),
-            findByIdAndUpdate: jest.fn(),
-            findOne: jest.fn(),
-            deleteMany: jest.fn(),
-            deleteOne: jest.fn(),
-            save: jest.fn(),
-            exec: jest.fn(),
-            validate: jest.fn().mockResolvedValue(eventCollection[0]),
-          },
+          useValue: EventModel,
         },
         {
           provide: getModelToken('User'),
@@ -55,11 +60,12 @@ describe('EventService', () => {
     }).compile();
 
     service = module.get<EventService>(EventService);
+    storageService = module.get<StorageService>(StorageService);
     eventModel = module.get<Model<Event>>(getModelToken('Event'));
 
     eventCollection = [
       {
-        _id: new mongoose.Types.ObjectId(),
+        _id: '1',
         eventStatus: 'NOT_STARTED',
         eventKeywords: ['Jest', 'Senior Project'],
         location: {
@@ -93,7 +99,7 @@ describe('EventService', () => {
         ticketCollectionId: '1',
       },
       {
-        _id: new mongoose.Types.ObjectId(),
+        _id: '2',
         eventStatus: 'NOT_STARTED',
         eventKeywords: ['I', 'Love', 'Cats'],
         location: {
@@ -127,7 +133,7 @@ describe('EventService', () => {
         ticketCollectionId: '',
       },
       {
-        _id: new mongoose.Types.ObjectId(),
+        _id: '3',
         eventStatus: 'NOT_STARTED',
         eventKeywords: ['Say', 'My', 'Name'],
         location: {
@@ -161,7 +167,7 @@ describe('EventService', () => {
         ticketCollectionId: '',
       },
       {
-        _id: new mongoose.Types.ObjectId(),
+        _id: '4',
         eventStatus: 'EVENT_STARTED',
         eventKeywords: ['Some', 'Keyword'],
         location: {
@@ -195,7 +201,7 @@ describe('EventService', () => {
         ticketCollectionId: '2',
       },
       {
-        _id: new mongoose.Types.ObjectId(),
+        _id: '5',
         eventStatus: 'ADMISSION_STARTED',
         eventKeywords: ['I', 'Am', 'Iron Man'],
         location: {
@@ -229,7 +235,7 @@ describe('EventService', () => {
         ticketCollectionId: '3',
       },
       {
-        _id: new mongoose.Types.ObjectId(),
+        _id: '6',
         eventStatus: 'EVENT_ENDED',
         eventKeywords: ['Let', 'Him', 'Cook'],
         location: {
@@ -288,6 +294,119 @@ describe('EventService', () => {
     });
   });
 
+  describe('Create Event', () => {
+    it('Should successfully create an event', async () => {
+      const newEvent = {
+        _id: '1',
+        eventStatus: 'NOT_STARTED',
+        eventKeywords: ['Hello', 'World'],
+        location: {
+          place_id: '1',
+          description: 'description',
+          structured_formatting: {
+            main_text: 'main',
+            secondary_text: 'secondary',
+          },
+        },
+        online_url: 'http://localhost:8080',
+        ticketSupply: {
+          general: 100,
+          vip: 20,
+          reservedSeat: 0,
+        },
+        organizerId: '1',
+        subEventId: '1',
+        superEventId: '1',
+        description: 'description',
+      };
+
+      const newEventModel = new EventModel(newEvent);
+      jest.spyOn(newEventModel, 'validate').mockReturnValue(eventCollection[0] as any);
+      jest.spyOn(newEventModel, 'save').mockResolvedValue(eventCollection[0] as any);
+
+      await service.createEvent(newEvent as any);
+      expect(newEvent._id).toBe(eventCollection[0]._id);
+    });
+
+    it('Should throw BAD_REQUEST error if there is any error', async () => {
+      const newEvent = {
+        _id: '1',
+        eventStatus: 'NOT_STARTED',
+        eventKeywords: ['Hello', 'World'],
+        location: {
+          place_id: '1',
+          description: 'description',
+          structured_formatting: {
+            main_text: 'main',
+            secondary_text: 'secondary',
+          },
+        },
+        online_url: 'http://localhost:8080',
+        ticketSupply: {
+          general: 100,
+          vip: 20,
+          reservedSeat: 0,
+        },
+        organizerId: '1',
+        subEventId: '1',
+        superEventId: '1',
+        description: 'description',
+      };
+
+      const newEventModel = new EventModel(newEvent);
+      jest.spyOn(newEventModel, 'validate').mockReturnValue(eventCollection[0] as any);
+      jest.spyOn(newEventModel, 'save').mockRejectedValue(new Error('Error'));
+
+      try {
+        await service.createEvent(newEvent as any);
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+
+    it('should throw a http exception with status code bad_request when there is an unexpected error', async () => {
+      const newEvent = {
+        _id: '1',
+        // eventStatus: 'NOT_STARTED',
+        eventKeywords: ['Hello', 'World'],
+        // location: {
+        //   place_id: '1',
+        //   description: 'description',
+        //   structured_formatting: {
+        //     main_text: 'main',
+        //     secondary_text: 'secondary',
+        //   },
+        // },
+        // online_url: 'http://localhost:8080',
+        ticketSupply: {
+          general: 100,
+          vip: 20,
+          reservedSeat: 0,
+        },
+        // organizerId: '1',
+        subEventId: '1',
+        superEventId: '1',
+        // description: 'description',
+      };
+      const newEventModel = new EventModel(newEvent);
+      // make validate throw error
+      jest.spyOn(newEventModel, 'validate').mockImplementation(() => {
+        throw new Error('Error');
+      });
+
+      const result = await service.createEvent('1234' as any);
+      expect(
+        new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: '1234',
+          },
+          HttpStatus.BAD_REQUEST,
+        ),
+      ).toBeInstanceOf(HttpException);
+    });
+  });
+
   describe('Get Event', () => {
     it('Should get event with correct ID', async () => {
       jest.spyOn(eventModel, 'findById').mockReturnValue({
@@ -304,6 +423,17 @@ describe('EventService', () => {
       } as any);
 
       try {
+        await service.getEvent('999');
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+
+    it('Should throw BAD_REQUEST error if there is any error', async () => {
+      try {
+        jest.spyOn(eventModel, 'findById').mockReturnValue({
+          select: jest.fn().mockReturnValue(eventCollection[0]),
+        } as any);
         await service.getEvent('999');
       } catch (e) {
         expect(e).toBeInstanceOf(HttpException);
@@ -365,6 +495,41 @@ describe('EventService', () => {
       } catch (e) {
         expect(e).toBeInstanceOf(HttpException);
       }
+    });
+
+    it('Should throw BAD_REQUEST error if there is any error', async () => {
+      try {
+        jest.spyOn(eventModel, 'find').mockImplementation(
+          () =>
+            ({
+              sort: jest.fn().mockImplementation(() => ({
+                exec: jest.fn().mockResolvedValueOnce(undefined),
+              })),
+            } as any),
+        );
+        await service.getEventFromEventOrganizer('999', true);
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+
+    it('Should get all listed and unlisted correct events from ID', async () => {
+      const eventOrganizerId = '1';
+      const _collection = eventCollection.filter(
+        (event) => event.organizerId === eventOrganizerId && event.ticketCollectionId === '',
+      );
+
+      jest.spyOn(eventModel, 'find').mockImplementation(
+        () =>
+          ({
+            sort: jest.fn().mockImplementation(() => ({
+              exec: jest.fn().mockResolvedValueOnce(_collection),
+            })),
+          } as any),
+      );
+
+      const events = await service.getEventFromEventOrganizer(eventOrganizerId, true);
+      expect(events.map((event) => event?._id.toString())).toEqual(_collection.map((event) => event?._id.toString()));
     });
   });
 
@@ -444,7 +609,34 @@ describe('EventService', () => {
         expect(e).toBeInstanceOf(HttpException);
       }
     });
+
+    it('Should not update event from wrong eventOrganizerId', async () => {
+      jest.spyOn(eventModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValue(undefined),
+      } as any);
+
+      event.organizerId = '1234';
+      try {
+        await service.updateEvent(event, '1');
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+
+    it('Should not update event from wrong eventOrganizerId', async () => {
+      jest.spyOn(eventModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValue(undefined),
+      } as any);
+
+      event.organizerId = '1234';
+      try {
+        await service.updateEvent(event, '1');
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
   });
+
   describe('Delete event', () => {
     it('should delete an event', async () => {
       const eventId = eventCollection[0]._id.toString();
@@ -473,6 +665,122 @@ describe('EventService', () => {
   describe('Upload event image', () => {
     it('should update the event image when the user is the event owner', async () => {
       expect(true).toBeTruthy();
+    });
+  });
+
+  describe('Get Event Organizer Info', () => {
+    it('should get the event organizer info', async () => {
+      const eventOrganizerId = '1';
+      const _collection = eventCollection.filter((event) => event.organizerId === eventOrganizerId);
+
+      jest.spyOn(eventModel, 'find').mockImplementation(
+        () =>
+          ({
+            sort: jest.fn().mockImplementation(() => ({
+              exec: jest.fn().mockResolvedValueOnce(_collection),
+            })),
+          } as any),
+      );
+
+      const events = await service.getEventFromEventOrganizer(eventOrganizerId, false);
+      expect(events.map((event) => event?._id.toString())).toEqual(_collection.map((event) => event?._id.toString()));
+    });
+
+    it('should throw a BadRequestException if the event organizer does not exist', async () => {
+      const eventOrganizerId = '1';
+
+      jest.spyOn(eventModel, 'find').mockImplementation(
+        () =>
+          ({
+            sort: jest.fn().mockImplementation(() => ({
+              exec: jest.fn().mockResolvedValueOnce([]),
+            })),
+          } as any),
+      );
+
+      try {
+        await service.getEventFromEventOrganizer(eventOrganizerId, true);
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+  });
+
+  describe('Get Event Organizer Info', () => {
+    it('should get the event organizer info', async () => {
+      const eventOrganizerId = '1';
+      const _collection = eventCollection.filter((event) => event.organizerId === eventOrganizerId);
+
+      jest.spyOn(eventModel, 'find').mockImplementation(
+        () =>
+          ({
+            sort: jest.fn().mockImplementation(() => ({
+              exec: jest.fn().mockResolvedValueOnce(_collection),
+            })),
+          } as any),
+      );
+
+      const events = await service.getEventFromEventOrganizer(eventOrganizerId, false);
+      expect(events.map((event) => event?._id.toString())).toEqual(_collection.map((event) => event?._id.toString()));
+    });
+
+    it('should throw a BadRequestException if the event organizer does not exist', async () => {
+      const eventOrganizerId = '1';
+
+      jest.spyOn(eventModel, 'find').mockImplementation(
+        () =>
+          ({
+            sort: jest.fn().mockImplementation(() => ({
+              exec: jest.fn().mockResolvedValueOnce([]),
+            })),
+          } as any),
+      );
+
+      try {
+        await service.getEventFromEventOrganizer(eventOrganizerId, true);
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+  });
+
+  describe('uploadEventImage', () => {
+    const mockImage = {
+      mimetype: 'image/png',
+      buffer: new Buffer('test'),
+      fieldname: 'test',
+      originalname: 'test',
+      size: 1,
+      encoding: 'test',
+      stream: new Readable(),
+      destination: '',
+      filename: 'test',
+      path: 'test',
+    };
+    it('should upload the event image', async () => {
+      const eventId = eventCollection[0]._id.toString();
+      const eventOrgId = eventCollection[0].organizerId;
+
+      jest.spyOn(eventModel, 'findById').mockReturnValue(eventCollection[0] as any);
+      jest.spyOn(eventModel, 'findByIdAndUpdate').mockReturnValue(eventCollection[0] as any);
+      jest.spyOn(storageService, 'save').mockResolvedValue(null as any);
+      const result = await service.uploadEventImage(eventId, eventOrgId, mockImage);
+      expect(result).toBeDefined();
+    });
+
+    it('should throw a BadRequestException if the event could not be found', async () => {
+      const eventId = eventCollection[0]._id.toString();
+      const eventOrgId = eventCollection[0].organizerId;
+
+      jest.spyOn(eventModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValue(undefined),
+      } as any);
+
+      try {
+        await service.uploadEventImage(eventId, eventOrgId, mockImage);
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
     });
   });
 });
