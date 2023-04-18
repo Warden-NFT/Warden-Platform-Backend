@@ -101,7 +101,7 @@ export class UserService {
         this.authService.generateJWT(newUser._id, ROLE.CUSTOMER as Role),
       ];
 
-      delete createdUser.password;
+      if (createdUser && createdUser.password) delete createdUser.password;
 
       return {
         status: HttpStatus.CREATED,
@@ -121,6 +121,7 @@ export class UserService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      throwBadRequestError(err);
     }
   }
 
@@ -163,12 +164,12 @@ export class UserService {
         this.authService.generateJWT(newUser._id, ROLE.EVENT_ORGANIZER as Role),
       ];
 
-      delete createdUser.password;
+      if (createdUser && createdUser.password) delete createdUser.password;
 
       return {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
-        jwt,
+        jwt: jwt,
         user: createdUser,
       };
     } catch (err) {
