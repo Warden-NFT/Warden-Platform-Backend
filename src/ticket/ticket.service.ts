@@ -48,16 +48,15 @@ export class TicketService {
   ): Promise<TicketCollection> {
     try {
       await new this.ticketCollectionModel(ticketCollection).validate();
-      const newTicketCollection = await new this.ticketCollectionModel(ticketCollection);
-      const event = await this.eventService.getEvent(newTicketCollection.subjectOf);
+      const event = await this.eventService.getEvent(ticketCollection.subjectOf);
       if (!event) throw new BadRequestException('Invalid event ID');
       if (event.ticketCollectionId) throw new ConflictException('This event already has a ticket set associated.');
 
       // Save the ticket
-      const savedTicketCollection = await newTicketCollection.save();
+      const savedTicketCollection = await this.ticketCollectionModel.create(ticketCollection);
 
       // Save the event
-      event.ticketCollectionId = savedTicketCollection._id.toString();
+      event.ticketCollectionId = savedTicketCollection._id?.toString();
       const updateEventPayload = {
         ...event,
         eventId: savedTicketCollection.subjectOf,
@@ -147,7 +146,7 @@ export class TicketService {
   // Get all tickets belonging to an event
   async getTicketPreviews(eventId: string): Promise<MarketEventTicketPreviewsDTO> {
     try {
-      const ticketCollection = await this.ticketCollectionModel.findOne({ subjectOf: eventId }).sort('desc');
+      const ticketCollection = await this.ticketCollectionModel.findOne({ subjectOf: eventId });
       const ticketPreviews = {
         vip: ticketCollection.tickets.vip.slice(0, 1),
         general: ticketCollection.tickets.general.slice(0, 1),
@@ -365,9 +364,12 @@ export class TicketService {
           }
         });
       });
-      const savedTicketCollection = await ticketCollectionToBeUpdated.save();
+      const savedTicketCollection = await this.ticketCollectionModel.updateOne(
+        { _id: ticketCollectionId },
+        ticketCollectionToBeUpdated,
+      );
       if (savedTicketCollection) {
-        return savedTicketCollection.tickets[_key][_index];
+        return ticketCollectionToBeUpdated.tickets[_key][_index];
       }
     } catch (error) {
       throwBadRequestError(error);
@@ -474,7 +476,7 @@ export class TicketService {
     try {
       const _ticket = await this.getTicketByID(eventId, ticketId);
       const _event = await this.eventService.getEvent(eventId);
-      _ticket.ownerHistory.push(walletAddress);
+      _ticket?.ownerHistory.push(walletAddress);
       await this.updateTicket(_ticket, ticketCollectionId, userId, true);
     } catch (error) {
       throwBadRequestError(error);
@@ -618,7 +620,7 @@ export class TicketService {
       }
 
       ticketCollection.resaleTicketPurchasePermission.push(permissionRequest);
-      await ticketCollection.save();
+      await this.ticketCollectionModel.updateOne({ _id: permissionRequest.ticketCollectionId }, ticketCollection);
       return { success: true };
     } catch (error) {
       throwBadRequestError(error);
@@ -640,13 +642,13 @@ export class TicketService {
       (permission: ResaleTicketPurchasePermissionDTO) => {
         return {
           ...permission,
-          approved: permission._id.toString() == permissionId,
+          approved: permission._id?.toString() == permissionId,
         };
       },
     );
     try {
-      const updatedCollection = await ticketCollection.save();
-      return updatedCollection.resaleTicketPurchasePermission;
+      await this.ticketCollectionModel.updateOne({ _id: ticketCollectionId }, ticketCollection);
+      return ticketCollection.resaleTicketPurchasePermission;
     } catch (error) {
       throwBadRequestError(error);
     }

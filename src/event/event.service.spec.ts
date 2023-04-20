@@ -25,6 +25,7 @@ describe('EventService', () => {
     static findOne = jest.fn();
     static deleteMany = jest.fn();
     static deleteOne = jest.fn();
+    static create = jest.fn();
     validate = jest.fn();
     exec = jest.fn();
     save = jest.fn();
@@ -321,11 +322,11 @@ describe('EventService', () => {
       };
 
       const newEventModel = new EventModel(newEvent);
-      jest.spyOn(newEventModel, 'validate').mockReturnValue(eventCollection[0] as any);
-      jest.spyOn(newEventModel, 'save').mockResolvedValue(eventCollection[0] as any);
+      // jest.spyOn(eventModel, 'validate').mockReturnValue(eventCollection[0] as any);
+      jest.spyOn(eventModel, 'create').mockImplementation(jest.fn().mockResolvedValueOnce(eventCollection[0] as any));
 
-      await service.createEvent(newEvent as any);
-      expect(newEvent._id).toBe(eventCollection[0]._id);
+      const result = await service.createEvent(newEvent as any);
+      expect(result._id).toBe(eventCollection[0]._id);
     });
 
     it('Should throw BAD_REQUEST error if there is any error', async () => {

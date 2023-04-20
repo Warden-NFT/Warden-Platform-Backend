@@ -151,9 +151,7 @@ describe('UserService', () => {
 
   describe('get users by ID', () => {
     it('should return user of that ID', async () => {
-      jest.spyOn(userModel, 'findById').mockReturnValue({
-        select: jest.fn().mockReturnValue(userCollection[0]),
-      } as any);
+      jest.spyOn(userModel, 'findById').mockReturnValue(userCollection[0] as any);
 
       const result = await userService.findById(userCollection[0]._id);
       expect(result._id).toBe(userCollection[0]._id);
@@ -171,10 +169,8 @@ describe('UserService', () => {
       }
     });
 
-    it('should return user of that ID', async () => {
-      jest.spyOn(userModel, 'findById').mockReturnValue({
-        select: jest.fn().mockReturnValue(null),
-      } as any);
+    it('should return HttpException when searching with unknown ID', async () => {
+      jest.spyOn(userModel, 'findById').mockReturnValue(undefined);
 
       try {
         await userService.findById(new mongoose.Types.ObjectId());
@@ -218,7 +214,15 @@ describe('UserService', () => {
     it('should not create new customer user', async () => {
       try {
         await userService.registerCustomerUser(userCollection[0] as any);
-        jest.spyOn(userModel, 'findOne').mockReturnValue(userCollection[0] as any);
+      } catch (e) {
+        expect(e).toBeInstanceOf(TypeError);
+      }
+    });
+
+    it('should not create new customer user', async () => {
+      jest.spyOn(userService, 'findUserByPhoneNumberOrEmail').mockReturnValue(userCollection[0] as any);
+      try {
+        await userService.registerCustomerUser(userCollection[0] as any);
       } catch (e) {
         expect(e).toBeInstanceOf(HttpException);
       }
@@ -261,6 +265,19 @@ describe('UserService', () => {
         expect(e).toBeInstanceOf(HttpException);
       }
     });
+
+    it('should not set verification status to true and throw error when the database query results in an error', async () => {
+      jest.spyOn(userModel, 'findById').mockRejectedValue(new Error('error'));
+
+      try {
+        await userService.setUserPhoneVerificationStatus(
+          new mongoose.Types.ObjectId().toString(),
+          VerificationStatus.VERIFIED,
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
   });
 
   describe('should get user info of that corresponding id', () => {
@@ -276,6 +293,15 @@ describe('UserService', () => {
       jest.spyOn(userModel, 'findById').mockReturnValue({
         select: jest.fn().mockReturnValue(undefined),
       } as any);
+
+      try {
+        await userService.getUserInfo(new mongoose.Types.ObjectId().toString());
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
+    it('should get not get user info when the database query returns an error', async () => {
+      jest.spyOn(userModel, 'findById').mockRejectedValue(HttpException);
 
       try {
         await userService.getUserInfo(new mongoose.Types.ObjectId().toString());
@@ -342,6 +368,16 @@ describe('UserService', () => {
       const result = await userService.registerEventOrganizerUser(newUser as any);
       expect(result.jwt).toBeDefined();
     });
+
+    it('should not create new event organizer user due to error', async () => {
+      const newEventOrganizerUser = new UserModel(newUser);
+      jest.spyOn(newEventOrganizerUser, 'save').mockReturnValue(undefined);
+      try {
+        await userService.registerEventOrganizerUser(newUser as any);
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException);
+      }
+    });
   });
 
   describe('registerCustomerUser', () => {
@@ -385,13 +421,26 @@ describe('UserService', () => {
         expect(error).toBeInstanceOf(HttpException);
       }
     });
+
+    it('should not create a new user due to a duplicate user found', async () => {
+      jest
+        .spyOn(userService, 'findUserByPhoneNumberOrEmail')
+        .mockRejectedValue(new HttpException({ code: 11000 }, HttpStatus.BAD_REQUEST));
+      const newCustomerUser = new CustomerModel(newUser);
+      jest.spyOn(newCustomerUser, 'save').mockReturnValue(userCollection.at(-1) as any);
+      jest.spyOn(authService, 'generateJWT').mockReturnValue('1234' as any);
+      try {
+        await userService.registerCustomerUser(newUser as any);
+      } catch (error) {
+        console.log(error);
+        expect(error).toBeInstanceOf(HttpException);
+      }
+    });
   });
 
   describe('updateAssociatedWalletAddress', () => {
     it('should update associated wallet address', async () => {
-      jest.spyOn(userModel, 'findById').mockReturnValue({
-        select: jest.fn().mockReturnValue(userCollection[0]),
-      } as any);
+      jest.spyOn(userModel, 'findById').mockReturnValue(userCollection[0] as any);
       jest.spyOn(new CustomerModel(userCollection[0]), 'save').mockReturnValue(userCollection[0] as any);
       const result = await userService.updateAssociatedWalletAddress(userCollection[0]._id.toString(), '0x1234');
       expect(result.status).toBe(HttpStatus.NOT_MODIFIED);

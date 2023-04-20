@@ -32,7 +32,7 @@ export class UserService {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid Id');
     }
-    const user = await this.userModel.findById(id).select(select);
+    const user = await this.userModel.findById(id);
     if (user == null) {
       throw new HttpException(
         {
@@ -110,7 +110,7 @@ export class UserService {
         user: createdUser,
       };
     } catch (err) {
-      if (err.code === 11000) {
+      if (err.code === 11000 || err.response.code === 11000) {
         const duplicateKey = Object.keys(err.keyPattern)[0];
         throw new HttpException(
           {
@@ -216,7 +216,7 @@ export class UserService {
       const user = await this.findById(userId);
       if (!user) throw new NotFoundException(`User id #${userId} not found`);
       user.verificationStatus = status;
-      await user.save();
+      await this.userModel.updateOne({ _id: userId }, user);
       return {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
