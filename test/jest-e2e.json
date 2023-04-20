@@ -5,5 +5,15 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "reporters": [
+    "default",
+    [
+      "../node_modules/jest-html-reporter",
+      {
+        "pageTitle": "Warden Platform Unit Testing Report"
+      }
+    ]
+  ],
+  "testResultsProcessor": "../node_modules/jest-html-reporter"
 }
