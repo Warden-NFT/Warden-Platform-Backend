@@ -8,6 +8,7 @@ import {
   SuccessfulUserModificationDTO,
   SuccessfulVerificationDTO,
   UserGeneralInfoDTO,
+  updateAssociatedWalletAddressDTO,
 } from './dto/user.dto';
 import { CustomerUser, EventOrganizerUser, User, Verification, VerificationStatus } from './user.interface';
 import * as bcrypt from 'bcrypt';
@@ -31,7 +32,7 @@ export class UserService {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid Id');
     }
-    const user = await this.userModel.findById(id).select(select);
+    const user = await this.userModel.findById(id);
     if (user == null) {
       throw new HttpException(
         {
@@ -100,7 +101,7 @@ export class UserService {
         this.authService.generateJWT(newUser._id, ROLE.CUSTOMER as Role),
       ];
 
-      delete createdUser.password;
+      if (createdUser && createdUser.password) delete createdUser.password;
 
       return {
         status: HttpStatus.CREATED,
@@ -109,7 +110,7 @@ export class UserService {
         user: createdUser,
       };
     } catch (err) {
-      if (err.code === 11000) {
+      if (err.code === 11000 || err.response.code === 11000) {
         const duplicateKey = Object.keys(err.keyPattern)[0];
         throw new HttpException(
           {
@@ -120,6 +121,7 @@ export class UserService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      throwBadRequestError(err);
     }
   }
 
@@ -162,12 +164,12 @@ export class UserService {
         this.authService.generateJWT(newUser._id, ROLE.EVENT_ORGANIZER as Role),
       ];
 
-      delete createdUser.password;
+      if (createdUser && createdUser.password) delete createdUser.password;
 
       return {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
-        jwt,
+        jwt: jwt,
         user: createdUser,
       };
     } catch (err) {
@@ -214,7 +216,7 @@ export class UserService {
       const user = await this.findById(userId);
       if (!user) throw new NotFoundException(`User id #${userId} not found`);
       user.verificationStatus = status;
-      await user.save();
+      await this.userModel.updateOne({ _id: userId }, user);
       return {
         status: HttpStatus.CREATED,
         message: 'The user has been created successfully',
@@ -229,6 +231,36 @@ export class UserService {
       const user = await this.findById(userId);
       if (!user) throw new NotFoundException(`User id #${userId} not found`);
       return user;
+    } catch (error) {
+      throwBadRequestError(error);
+    }
+  }
+
+  async updateAssociatedWalletAddress(
+    userId: string,
+    walletAddress: string,
+  ): Promise<updateAssociatedWalletAddressDTO> {
+    try {
+      const user = await this.findById(userId);
+      if (!user) throw new NotFoundException(`User id #${userId} not found`);
+
+      // Check if the wallet address is already associated with the user
+      // If yes, don't do anything
+      // If no, add the wallet address to the associatedWallet array
+      if (user.associatedWallet.includes(walletAddress))
+        return {
+          status: HttpStatus.NOT_MODIFIED,
+          message: 'No changes made to the associated wallets list',
+        };
+      else {
+        user.associatedWallet = [...user.associatedWallet, walletAddress];
+      }
+
+      await user.save();
+      return {
+        status: HttpStatus.CREATED,
+        message: 'The user has been created successfully',
+      };
     } catch (error) {
       throwBadRequestError(error);
     }

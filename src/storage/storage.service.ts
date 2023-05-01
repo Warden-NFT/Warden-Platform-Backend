@@ -3,6 +3,7 @@ import { DownloadResponse, Storage } from '@google-cloud/storage';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import StorageConfig from './storage-config';
 import { FileData, StoredFileMetadata } from '../media/Interfaces/MediaUpload';
+import { throwBadRequestError } from '../utils/httpError';
 
 @Injectable()
 export class StorageService {
@@ -22,6 +23,7 @@ export class StorageService {
   }
 
   removeFileExtension(filename: string) {
+    if (!filename) return filename;
     const filenameOnly = filename.split('.').slice(0, -1).join('.');
     if (filenameOnly.length === 0) return filename;
     return filenameOnly;
@@ -37,22 +39,26 @@ export class StorageService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return new Promise((resolve, _) => {
-      const file = this.storage.bucket(this.bucket).file(path);
-      const stream = file.createWriteStream({
-        metadata: {
-          contentType,
-        },
-      });
-      stream.on('finish', async () => {
-        return await file.setMetadata({
-          metadata: metadata,
+    try {
+      return new Promise((resolve, _) => {
+        const file = this.storage.bucket(this.bucket).file(path);
+        const stream = file.createWriteStream({
+          metadata: {
+            contentType,
+          },
         });
-      });
+        stream.on('finish', async () => {
+          return await file.setMetadata({
+            metadata: metadata,
+          });
+        });
 
-      stream.end(media);
-      resolve({ metadata, contentType });
-    });
+        stream.end(media);
+        resolve({ metadata, contentType });
+      });
+    } catch (error) {
+      throwBadRequestError(error);
+    }
   }
 
   async saveFiles(files: FileData[]) {

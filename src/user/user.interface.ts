@@ -16,6 +16,7 @@ export interface User extends mongoose.Document {
   verificationStatus: Verification;
   accountType: Role;
   profileImage: string;
+  associatedWallet?: string[];
 }
 
 export interface CustomerUser extends User {

@@ -5,8 +5,8 @@ import { AuthModule } from 'src/auth/auth.module';
 import { getModelToken, MongooseModule } from '@nestjs/mongoose';
 import { CustomerSchema, EventOrganizerSchema, UserSchema } from './user.schema';
 import { ConfigModule } from '@nestjs/config';
-import { StorageModule } from 'src/storage/storage.module';
-import { StorageService } from 'src/storage/storage.service';
+import { StorageModule } from '../storage/storage.module';
+import { StorageService } from '../storage/storage.service';
 
 const customerProviderFactory = {
   provide: getModelToken('Customer'),

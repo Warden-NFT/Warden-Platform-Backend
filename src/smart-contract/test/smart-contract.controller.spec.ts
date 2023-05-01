@@ -1,7 +1,7 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import { SmartContractController } from './smart-contract.controller';
-import { SmartContractService } from './smart-contract.service';
+import { SmartContractController } from '../smart-contract.controller';
+import { SmartContractService } from '../smart-contract.service';
 
 describe('SmartContractController', () => {
   let controller: SmartContractController;

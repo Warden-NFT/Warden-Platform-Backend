@@ -1,4 +1,4 @@
-import { TicketsMetadata } from 'src/event/interfaces/event.interface';
+import { TicketsMetadata } from '../../event/interfaces/event.interface';
 import { PriceDTO } from '../dto/ticket.dto';
 
 export type TicketType = 'GENERAL' | 'VIP' | 'RESERVED_SEAT';

@@ -36,6 +36,7 @@
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "jest-html-reporter": "^3.7.1",
     "moment": "^2.29.4",
     "mongodb-memory-server": "^8.12.1",
     "mongoose": "^6.8.2",
@@ -86,10 +87,21 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.service.(t|j)s"
+      "**/*.service.(t|j)s",
+      "!**/storage.service.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "reporters": [
+      "default",
+      [
+        "../node_modules/jest-html-reporter",
+        {
+          "pageTitle": "Warden Platform Unit Testing Report"
+        }
+      ]
+    ],
+    "testResultsProcessor": "../node_modules/jest-html-reporter"
   },
   "lint-staged": {
     "src/**/*.{js,ts}": [

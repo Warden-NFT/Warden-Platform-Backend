@@ -38,6 +38,10 @@ export class CreateCustomerUserDTO {
 
   @ApiProperty()
   profileImage: File | string;
+
+  @ApiProperty({ type: [String] })
+  @IsString({ each: true })
+  associatedWallet?: string[];
 }
 
 @Expose()
@@ -130,4 +134,15 @@ export class UpdateVerificationStatusDTO {
   @ApiProperty()
   @IsString()
   verificationStatus: Verification;
+}
+
+@Expose()
+export class updateAssociatedWalletAddressDTO {
+  @ApiProperty()
+  @IsString()
+  status: number;
+
+  @ApiProperty()
+  @IsString()
+  message: string;
 }
