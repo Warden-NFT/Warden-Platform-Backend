@@ -582,7 +582,7 @@ export class TicketService {
     // Check if there are any pending resale ticket purchase approvals
     let resalePurchaseApproved = false;
     let resalePurchasePendingApproval = false;
-    if (smartContractTicketId) {
+    if (smartContractTicketId !== undefined) {
       const permissionRequest = ticketCollection.resaleTicketPurchasePermission.find((request) => {
         return request.address === address && request.smartContractTicketId === smartContractTicketId;
       });
